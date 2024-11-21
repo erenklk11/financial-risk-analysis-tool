@@ -1,10 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Mja</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        /* General Reset */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background-color: #ffffff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333333;
+        }
+
+        .login-container label {
+            font-size: 14px;
+            color: #555555;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .login-container button {
+            background-color: #007BFF;
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .login-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .sign-up-button {
+        background-color: #6c757d; /* Gray background for differentiation */
+        color: #ffffff;
+        border: none;
+        padding: 10px 15px;
+        width: 100%; /* Full width */
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px; /* Add space above the button */
+        }
+
+        .sign-up-button:hover {
+        background-color: #5a6268; /* Slightly darker gray on hover */
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-<h1>Test123</h1>
+<div class="login-container">
+    <h1>Login</h1>
+
+    <p class="error-message" th:if="${param.error}" th:text="'Invalid username or password. Please try again.'"></p>
+    <p class="error-message" th:if="${param.logout}" th:text="'You have been logged out successfully.'"></p>
+
+    <form action="#" th:action="@{/processSignIn}" method="POST">
+
+
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+
+
+        <button type="submit">Login</button>
+    </form>
+
+    <form th:action="@{/sign-up}" method="GET">
+        <button type="submit" class="sign-up-button">Sign Up</button>
+    </form>
+
+</div>
+
+
 </body>
 </html>
