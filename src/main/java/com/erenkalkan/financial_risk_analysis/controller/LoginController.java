@@ -2,8 +2,13 @@ package com.erenkalkan.financial_risk_analysis.controller;
 
 import com.erenkalkan.financial_risk_analysis.entity.User;
 import com.erenkalkan.financial_risk_analysis.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +16,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -18,6 +24,7 @@ import java.util.Optional;
 public class LoginController {
 
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
 
     @GetMapping("/")
     public String signIn() {
@@ -25,7 +32,13 @@ public class LoginController {
     }
 
     @RequestMapping("/welcome")
-    public String welcome() {
+    public String welcome(Model model) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName(); // This gets the username
+
+        model.addAttribute("username", username);
+
         return "welcome";
     }
 
@@ -38,7 +51,7 @@ public class LoginController {
     }
 
     @PostMapping("/processSignUp")
-    public String processSignUp(@ModelAttribute("newUser") User user, Model model) {
+    public String processSignUp(@ModelAttribute("newUser") User user, Model model, HttpServletRequest request) {
 
         try {
             Optional<User> existingUser = userService.findByUsername(user.getUsername());
@@ -54,7 +67,11 @@ public class LoginController {
                 return "sign-up";
             }
 
+            String rawPassword = user.getPassword();
+
             userService.save(user);
+
+            authWithAuthManager(request, user.getUsername(), rawPassword);
 
             return "redirect:/welcome";
 
@@ -64,5 +81,13 @@ public class LoginController {
         }
     }
 
+    public void authWithAuthManager(HttpServletRequest request, String username, String password) {
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password);
+        authToken.setDetails(new WebAuthenticationDetails(request));
+
+        Authentication authentication = authenticationManager.authenticate(authToken);
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 
 }
