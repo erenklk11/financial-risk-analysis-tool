@@ -32,6 +32,12 @@ public class RiskMetric {
     private Double beta;
 
     @Column(nullable = true)
+    private Double alpha;
+
+    @Column(nullable = true)
+    private Double mdd; // Maximum Drawdown
+
+    @Column(nullable = true)
     private Double var; // Value at Risk
 
     @Column(name = "calculated_at", nullable = false)

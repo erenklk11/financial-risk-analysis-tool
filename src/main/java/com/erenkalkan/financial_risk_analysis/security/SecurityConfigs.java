@@ -1,6 +1,5 @@
 package com.erenkalkan.financial_risk_analysis.security;
 
-import com.erenkalkan.financial_risk_analysis.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

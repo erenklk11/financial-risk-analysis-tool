@@ -1,4 +1,4 @@
-package com.erenkalkan.financial_risk_analysis.service;
+package com.erenkalkan.financial_risk_analysis.security;
 
 import com.erenkalkan.financial_risk_analysis.entity.User;
 import com.erenkalkan.financial_risk_analysis.repository.UserRepository;

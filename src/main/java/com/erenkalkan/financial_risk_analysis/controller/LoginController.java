@@ -35,7 +35,7 @@ public class LoginController {
     public String welcome(Model model) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName(); // This gets the username
+        String username = authentication.getName();
 
         model.addAttribute("username", username);
 
