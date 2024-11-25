@@ -12,6 +12,8 @@ public interface AssetService {
 
     List<Asset> findAll(Portfolio portfolio);
 
+    List<Double> findInvestmentReturnsByPortfolio(Portfolio portfolio);
+
     void save(Asset asset);
 
     void deleteById(Long id);

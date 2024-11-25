@@ -10,7 +10,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class RiskMetricServiceImpl implements RiskMetricService{
+public class RiskMetricServiceImpl implements RiskMetricService {
+
+
+    private static final double DEFAULT_RISK_FREE_RATE = 0.03;
 
     private final RiskMetricRepository riskMetricRepository;
 
@@ -34,19 +37,19 @@ public class RiskMetricServiceImpl implements RiskMetricService{
     /**
      * Calculate the standard deviation of returns.
      *
-     * @param returns List of investment returns
+     * @param investmentReturns List of investment returns
      * @return Standard deviation
      */
     @Override
-    public double calculateVolatility(List<Double> returns) {
+    public double calculateVolatility(List<Double> investmentReturns) {
 
-        if (returns == null || returns.isEmpty()) {
+        if (investmentReturns == null || investmentReturns.isEmpty()) {
             throw new IllegalArgumentException("Returns list cannot be null or empty");
         }
 
-        double mean = returns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double mean = investmentReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
 
-        double variance = returns.stream()
+        double variance = investmentReturns.stream()
                 .mapToDouble(r -> Math.pow(r - mean, 2))
                 .average()
                 .orElse(0.0);
@@ -55,27 +58,20 @@ public class RiskMetricServiceImpl implements RiskMetricService{
     }
 
     /**
-     * Calculate the Sharpe ratio.
+     * Calculate Sharpe Ratio.
      *
-     * @param returns List of investment returns
-     * @param riskFreeRate Risk-free rate of return
-     * @return Sharpe ratio
+     * @param investmentReturns List of investment investmentReturns
+     * @return Sharpe Ratio
      */
-    @Override
-    public double calculateSharpeRatio(List<Double> returns, double riskFreeRate) {
-        if (returns == null || returns.isEmpty()) {
+    public double calculateSharpeRatio(List<Double> investmentReturns) {
+        if (investmentReturns == null || investmentReturns.isEmpty()) {
             throw new IllegalArgumentException("Returns list cannot be null or empty");
         }
 
-        double averageReturn = returns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double meanReturn = investmentReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double stdDev = calculateVolatility(investmentReturns);
 
-        double standardDeviation = this.calculateVolatility(returns);
-
-        if (standardDeviation == 0) {
-            throw new IllegalArgumentException("Standard deviation cannot be zero");
-        }
-
-        return (averageReturn - riskFreeRate) / standardDeviation;
+        return (meanReturn - DEFAULT_RISK_FREE_RATE) / stdDev;
     }
 
     /**

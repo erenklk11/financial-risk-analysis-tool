@@ -13,9 +13,9 @@ public interface RiskMetricService {
 
     void deleteById(Long id);
 
-    double calculateVolatility(List<Double> returns);
+    double calculateVolatility(List<Double> investmentReturns);
 
-    double calculateSharpeRatio(List<Double> returns, double riskFreeRate);
+    double calculateSharpeRatio(List<Double> investmentReturns);
 
     double calculateBeta(List<Double> investmentReturns, List<Double> marketReturns);
 

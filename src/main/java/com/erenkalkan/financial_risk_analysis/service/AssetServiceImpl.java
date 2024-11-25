@@ -21,6 +21,12 @@ public class AssetServiceImpl implements  AssetService {
     }
 
     @Override
+    public List<Double> findInvestmentReturnsByPortfolio(Portfolio portfolio) {
+        return assetRepository.findInvestmentReturnsByPortfolio(portfolio);
+    }
+
+
+    @Override
     public void save(Asset asset) {
 
     }

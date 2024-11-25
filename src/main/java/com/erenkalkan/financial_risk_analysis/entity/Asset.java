@@ -28,6 +28,9 @@ public class Asset {
     @Column(nullable = false)
     private String symbol;
 
+    @Column(name = "country_code")
+    private String countryCode;
+
     @Column(nullable = false)
     private Double quantity;
 
