@@ -13,8 +13,6 @@ import java.util.List;
 public class RiskMetricServiceImpl implements RiskMetricService {
 
 
-    private static final double DEFAULT_RISK_FREE_RATE = 0.03;
-
     private final RiskMetricRepository riskMetricRepository;
 
 
@@ -63,7 +61,8 @@ public class RiskMetricServiceImpl implements RiskMetricService {
      * @param investmentReturns List of investment investmentReturns
      * @return Sharpe Ratio
      */
-    public double calculateSharpeRatio(List<Double> investmentReturns) {
+    public double calculateSharpeRatio(List<Double> investmentReturns, double riskFreeRate) {
+
         if (investmentReturns == null || investmentReturns.isEmpty()) {
             throw new IllegalArgumentException("Returns list cannot be null or empty");
         }
@@ -71,7 +70,7 @@ public class RiskMetricServiceImpl implements RiskMetricService {
         double meanReturn = investmentReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
         double stdDev = calculateVolatility(investmentReturns);
 
-        return (meanReturn - DEFAULT_RISK_FREE_RATE) / stdDev;
+        return (meanReturn - riskFreeRate) / stdDev;
     }
 
     /**
@@ -83,6 +82,7 @@ public class RiskMetricServiceImpl implements RiskMetricService {
      */
     @Override
     public double calculateBeta(List<Double> investmentReturns, List<Double> marketReturns) {
+
         if (investmentReturns == null || marketReturns == null || investmentReturns.size() != marketReturns.size()) {
             throw new IllegalArgumentException("Returns lists must be non-null and of the same size");
         }

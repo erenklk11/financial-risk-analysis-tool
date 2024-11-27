@@ -18,4 +18,5 @@ public interface AssetService {
 
     void deleteById(Long id);
 
+    List<Double> fetchPrices(Asset asset);
 }

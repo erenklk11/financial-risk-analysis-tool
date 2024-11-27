@@ -3,6 +3,7 @@ package com.erenkalkan.financial_risk_analysis.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,7 +35,10 @@ public class Asset {
     @Column(nullable = false)
     private Double quantity;
 
-    @Column(name = "purchase_price", nullable = false)
+    @Column(name = "purchase_date", nullable = false)
+    private LocalDate purchaseDate;
+
+    @Column(name="purchase_price", nullable = false)
     private Double purchasePrice;
 
     @Column(name = "current_price", nullable = false)

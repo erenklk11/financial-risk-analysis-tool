@@ -15,7 +15,7 @@ public interface RiskMetricService {
 
     double calculateVolatility(List<Double> investmentReturns);
 
-    double calculateSharpeRatio(List<Double> investmentReturns);
+    double calculateSharpeRatio(List<Double> investmentReturns, double riskFreeRate);
 
     double calculateBeta(List<Double> investmentReturns, List<Double> marketReturns);
 

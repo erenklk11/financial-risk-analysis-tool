@@ -30,12 +30,16 @@ CREATE TABLE Assets (
 
 CREATE TABLE Historical_Data (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    symbol VARCHAR(10) NOT NULL,
-    date DATE NOT NULL,
-    price DECIMAL(15, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY (symbol, date)
+    asset_id INT NOT NULL,
+    purchase_date DATE NOT NULL,
+    today DATE NOT NULL,
+    purchase_price DECIMAL(15,2) NOT NULL,
+    current_price DECIMAL(15,2) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (asset_id) REFERENCES Assets(id) ON DELETE CASCADE
 );
+
 
 CREATE TABLE Risk_Metrics (
     id INT AUTO_INCREMENT PRIMARY KEY,

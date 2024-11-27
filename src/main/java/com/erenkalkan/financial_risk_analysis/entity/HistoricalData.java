@@ -19,15 +19,23 @@ public class HistoricalData {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String symbol;
+    @OneToOne
+    @JoinColumn(name="asset_id", nullable = false)
+    private Asset asset;
 
-    @Column(nullable = false)
-    private LocalDate date;
+    @Column(name="purchase_date", nullable = false)
+    private LocalDate purchaseDate;
 
-    @Column(nullable = false)
-    private Double price;
+    @Column(name="today", nullable = false)
+    private LocalDate currentDate = LocalDate.now();
+
+    @Column(name="purchase_price",nullable = false)
+    private Double purchasePrice;
+
+    @Column(name="current_price", nullable = false)
+    private Double currentPrice;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
 }

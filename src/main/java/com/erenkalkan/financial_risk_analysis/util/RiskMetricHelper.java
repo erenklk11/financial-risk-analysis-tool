@@ -2,12 +2,13 @@ package com.erenkalkan.financial_risk_analysis.util;
 
 import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
 import com.erenkalkan.financial_risk_analysis.service.AssetService;
+import com.erenkalkan.financial_risk_analysis.service.HistoricalDataService;
 import com.erenkalkan.financial_risk_analysis.service.PortfolioService;
 import com.erenkalkan.financial_risk_analysis.service.RiskMetricService;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
@@ -15,19 +16,22 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class RiskMetricHelper {
 
-    private static final String RISK_FREE_RATE_API_URL = "https://www.alphavantage.co/query";
-    private static final String RISK_FREE_RATE_API_KEY = "7UIB9UFMK0B0KN1S";
-
+    @Value("${alphavantage.api.url}")
+    private static String RISK_FREE_RATE_API_URL;
+    @Value("${alphavantage.api.key}")
+    private static String RISK_FREE_RATE_API_KEY;
+    private static final String MAKRET_SYMBOL = "SPY";
 
     private final RiskMetricService riskMetricService;
     private final PortfolioService portfolioService;
+    private final HistoricalDataService historicalDataService;
     private final AssetService assetService;
 
 
@@ -37,8 +41,25 @@ public class RiskMetricHelper {
      * @param portfolio the portfolio to fetch returns for
      * @return a list of investment returns
      */
-    public List<Double> findReturns(Portfolio portfolio) {
+    public List<Double> findInvestmentReturns(Portfolio portfolio) {
         return assetService.findInvestmentReturnsByPortfolio(portfolio);
+    }
+
+    /**
+     * Find market returns (S&P 500) for a given portfolio.
+     *
+     * @param portfolio the portfolio to fetch the marketreturns for
+     * @return a list of market returns relative to the purchase date of each asset in a portfolio
+     */
+    public List<Double> findMarketReturns(Portfolio portfolio) {
+
+        List<Double> marketReturns = new ArrayList<>();
+
+        for(int i = 0; i < portfolio.getAssets().size(); i++) {
+            marketReturns.add(historicalDataService.findMarketReturns(portfolio.getAssets().get(i)));
+        }
+
+        return marketReturns;
     }
 
     /**
@@ -81,6 +102,7 @@ public class RiskMetricHelper {
 
         return 0.0;
     }
+
 
 
 
