@@ -7,11 +7,13 @@ import java.util.List;
 
 public interface RiskMetricService {
 
+
     RiskMetric findByPortfolio(Portfolio portfolio);
 
     void save(RiskMetric riskMetric);
 
     void deleteById(Long id);
+
 
     double calculateVolatility(List<Double> investmentReturns);
 
@@ -21,7 +23,7 @@ public interface RiskMetricService {
 
     double calculateAlpha(double portfolioReturn, double marketReturn, double riskFreeRate, double beta);
 
-    double calculateValueAtRisk(double mean, double stdDev, double zScore);
+    double calculateValueAtRisk(double historicalMean, double historicalVolatility, double zScore);
 
     double calculateMaximumDrawdown(List<Double> portfolioValues);
 }

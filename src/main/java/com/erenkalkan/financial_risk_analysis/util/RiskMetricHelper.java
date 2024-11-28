@@ -19,7 +19,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -30,6 +32,8 @@ public class RiskMetricHelper {
     @Value("${alphavantage.api.key}")
     private static String RISK_FREE_RATE_API_KEY;
     private static final String MAKRET_SYMBOL = "SPY";
+    @Value("${risk.confidenceLevel}")
+    private double confidenceLevel;
 
     private final RiskMetricService riskMetricService;
     private final PortfolioService portfolioService;
@@ -123,7 +127,7 @@ public class RiskMetricHelper {
 
         double portfolioReturn = 0.0;
 
-        double totalPortfolioValue = calculateTotalPortfolioValue(portfolio.getAssets());
+        double totalPortfolioValue = calculateTotalPortfolioValue(portfolio);
 
         for (Asset asset : portfolio.getAssets()) {
             Double purchasePrice = asset.getPurchasePrice();
@@ -143,13 +147,65 @@ public class RiskMetricHelper {
         return portfolioReturn;
     }
 
-    private double calculateTotalPortfolioValue(List<Asset> assets) {
+    private double calculateTotalPortfolioValue(Portfolio portfolio) {
+
+        List<Asset> assets = portfolio.getAssets();
         double totalValue = 0.0;
         for (Asset asset : assets) {
             totalValue += asset.getQuantity() * asset.getCurrentPrice();
         }
         return totalValue;
     }
+
+
+    /**
+     * Calculates the total value of a portfolio based on the price of each asset
+     * from a specified number of days ago.
+     *
+     * The method fetches the historical price for each asset in the portfolio at
+     * the target date (calculated as the current date minus the specified number of days),
+     * and then calculates the total value of the portfolio by summing the weighted
+     * values of each asset (quantity * historical price).
+     *
+     * @param portfolio the portfolio for which the total value is being calculated
+     * @param days the number of days ago from the current date to fetch historical asset prices
+     * @return the total value of the portfolio based on historical prices from the specified date
+     * @throws RuntimeException if fetching prices for any asset fails or returns invalid data
+     */
+    public double calculateTotalPortfolioValueLastXDays(Portfolio portfolio, int days) {
+
+        List<Asset> assets = portfolio.getAssets();
+        double totalValue = 0.0;
+
+        // Calculate the target historical date
+        LocalDate historicalDate = LocalDate.now().minusDays(days);
+
+        for (Asset asset : assets) {
+            try {
+                // Fetch historical price for the asset
+                Asset tempAsset = new Asset();
+                tempAsset.setSymbol(asset.getSymbol());
+                tempAsset.setPurchaseDate(historicalDate);
+
+                List<Double> prices = assetService.fetchPrices(tempAsset);
+
+                // Validate the fetched data
+                if (prices == null || prices.isEmpty()) {
+                    throw new RuntimeException("Failed to fetch historical prices for asset: " + asset.getSymbol());
+                }
+
+                double lastXDaysPrice = prices.get(0); // Price at historical date
+                totalValue += asset.getQuantity() * lastXDaysPrice;
+
+            } catch (Exception e) {
+                // Log the error and skip the asset
+                System.err.println("Error fetching price for asset " + asset.getSymbol() + ": " + e.getMessage());
+            }
+        }
+        return totalValue;
+    }
+
+
 
     /**
      * Calculates the return on the market index (e.g., S&P 500) based on the earliest purchase date
@@ -175,8 +231,8 @@ public class RiskMetricHelper {
 
         // Price at purchase date is being stored first in the list, the current price after
 
-        double marketPriceAtPurchaseDate = prices.get(1);
-        double currentMarketPrice = prices.get(2);
+        double marketPriceAtPurchaseDate = prices.get(0);
+        double currentMarketPrice = prices.get(1);
 
         return (currentMarketPrice - marketPriceAtPurchaseDate) / marketPriceAtPurchaseDate;
     }
@@ -190,6 +246,178 @@ public class RiskMetricHelper {
         }
         return earliestDate;
     }
+
+
+    public double calculateHistoricalVolatility(Portfolio portfolio) {
+
+        // Step 1: Get the list of assets
+        List<Asset> assets = portfolio.getAssets();
+        int numAssets = assets.size();
+
+        // Step 2: Calculate asset returns (e.g., daily returns for the last 30 days)
+        Map<Asset, List<Double>> assetReturns = new HashMap<>();
+        for (Asset asset : assets) {
+            Asset ReturnLast30Days = new Asset();
+            Asset ReturnLast60Days = new Asset();
+            ReturnLast30Days.setSymbol(asset.getSymbol());
+            ReturnLast60Days.setSymbol(asset.getSymbol());
+            ReturnLast30Days.setPurchaseDate(LocalDate.now().minusDays(30));
+            ReturnLast60Days.setPurchaseDate(LocalDate.now().minusDays(60));
+
+            double pastPrice30Days = assetService.fetchPrices(ReturnLast30Days).get(0);
+            double currentPrice30Days = assetService.fetchPrices(ReturnLast60Days).get(1);
+            double return30Days =  (currentPrice30Days -pastPrice30Days)/ pastPrice30Days;
+
+            double pastPrice60Days = assetService.fetchPrices(ReturnLast60Days).get(0);
+            double currentPrice60Days = assetService.fetchPrices(ReturnLast60Days).get(1);
+            double return60Days =  (currentPrice60Days -pastPrice60Days)/ pastPrice60Days;
+
+            List<Double> returns = new ArrayList<>();
+            returns.add(return30Days);
+            returns.add(return60Days);
+
+            assetReturns.put(asset, returns);
+        }
+
+        // Step 3: Calculate covariance matrix between asset returns
+        double[][] covarianceMatrix = new double[numAssets][numAssets];
+        for (int i = 0; i < numAssets; i++) {
+            for (int j = 0; j < numAssets; j++) {
+                covarianceMatrix[i][j] = calculateCovariance(assetReturns.get(assets.get(i)), assetReturns.get(assets.get(j)));
+            }
+        }
+
+        // Step 4: Calculate portfolio weights
+        double[] weights = new double[numAssets];
+        double totalValue = calculateTotalPortfolioValue(portfolio);
+        for (int i = 0; i < numAssets; i++) {
+            weights[i] = (assets.get(i).getQuantity() * assets.get(i).getCurrentPrice()) / totalValue;
+        }
+
+        // Step 5: Calculate portfolio volatility using the formula
+        double portfolioVolatility = 0.0;
+        for (int i = 0; i < numAssets; i++) {
+            for (int j = 0; j < numAssets; j++) {
+                portfolioVolatility += weights[i] * weights[j] * covarianceMatrix[i][j];
+            }
+        }
+
+        // Step 6: Return the portfolio volatility
+        return Math.sqrt(portfolioVolatility);
+    }
+
+    public double calculateCovariance(List<Double> returnsX, List<Double> returnsY) {
+        if (returnsX == null || returnsY == null || returnsX.size() != returnsY.size()) {
+            throw new IllegalArgumentException("Return lists must be non-null and of the same size");
+        }
+
+        int n = returnsX.size();
+        double meanX = returnsX.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double meanY = returnsY.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+
+        double covariance = 0.0;
+        for (int i = 0; i < n; i++) {
+            covariance += (returnsX.get(i) - meanX) * (returnsY.get(i) - meanY);
+        }
+
+        // Return the average covariance (dividing by n-1 for sample covariance)
+        return covariance / (n - 1);
+    }
+
+
+    /**
+     * Calculates the historical mean return of a portfolio based on the weighted average returns
+     * of its constituent assets. Each asset's historical returns are calculated over multiple
+     * periods (e.g., last 30 days and last 60 days), and the overall portfolio mean return is
+     * derived by weighting these returns by the proportion of the asset's value in the portfolio.
+     *
+     * <p>This method uses the following steps:
+     * <ol>
+     *   <li>Fetches historical price data for each asset over specified time periods (30 and 60 days).</li>
+     *   <li>Calculates the returns for these periods.</li>
+     *   <li>Computes the portfolio weights for each asset based on their proportion of the total portfolio value.</li>
+     *   <li>Determines the mean return for each asset by averaging its returns over the periods.</li>
+     *   <li>Calculates the weighted average of all asset mean returns to obtain the portfolio's mean return.</li>
+     * </ol>
+     *
+     * @param portfolio The portfolio containing a list of assets for which the mean return is calculated.
+     *                  Each asset must have information about its current price, quantity, and symbol.
+     * @return The historical mean return of the portfolio as a double, representing the weighted average
+     *         return of its assets over the specified periods.
+     * @throws IllegalArgumentException If the portfolio is empty or if any required data (e.g., prices) is missing.
+     * @throws RuntimeException If the asset service fails to fetch historical price data.
+     */
+    public double calculateMeanReturn(Portfolio portfolio) {
+        List<Asset> assets = portfolio.getAssets();
+        int numAssets = assets.size();
+
+        Map<Asset, List<Double>> assetReturns = new HashMap<>();
+        for (Asset asset : assets) {
+            Asset ReturnLast30Days = new Asset();
+            Asset ReturnLast60Days = new Asset();
+            ReturnLast30Days.setSymbol(asset.getSymbol());
+            ReturnLast60Days.setSymbol(asset.getSymbol());
+            if(asset.getPurchaseDate().isBefore(LocalDate.now().minusDays(30))){
+                ReturnLast30Days.setPurchaseDate(LocalDate.now().minusDays(30));
+                ReturnLast60Days.setPurchaseDate(LocalDate.now().minusDays(60));
+            }
+
+            // Fetch prices for the 30-day and 60-day periods
+            double pastPrice30Days = assetService.fetchPrices(ReturnLast30Days).get(0);
+            double currentPrice30Days = assetService.fetchPrices(ReturnLast30Days).get(1);
+            double return30Days = (currentPrice30Days - pastPrice30Days) / pastPrice30Days;
+
+            double pastPrice60Days = assetService.fetchPrices(ReturnLast60Days).get(0);
+            double currentPrice60Days = assetService.fetchPrices(ReturnLast60Days).get(1);
+            double return60Days = (currentPrice60Days - pastPrice60Days) / pastPrice60Days;
+
+            List<Double> returns = new ArrayList<>();
+            returns.add(return30Days);
+            returns.add(return60Days);
+
+            assetReturns.put(asset, returns);
+        }
+
+        // Calculate portfolio weights
+        double[] weights = new double[numAssets];
+        double totalValue = calculateTotalPortfolioValue(portfolio);
+        for (int i = 0; i < numAssets; i++) {
+            weights[i] = (assets.get(i).getQuantity() * assets.get(i).getCurrentPrice()) / totalValue;
+        }
+
+        // Calculate weighted mean return across multiple periods
+        double portfolioMeanReturn = 0.0;
+        for (int i = 0; i < numAssets; i++) {
+            List<Double> returns = assetReturns.get(assets.get(i));
+            double averageReturnForAsset = returns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            portfolioMeanReturn += weights[i] * averageReturnForAsset;
+        }
+
+        return portfolioMeanReturn;
+    }
+
+
+    /**
+     * Retrieves the z-score corresponding to a given confidence level.
+     *
+     * The z-score is a statistical measurement that represents the number of
+     * standard deviations a data point is from the mean. This method maps
+     * common confidence levels (e.g., 90%, 95%, 99%) to their respective z-scores.
+     *
+     * @param confidenceLevel the confidence level (e.g., 0.90 for 90%)
+     * @return the z-score associated with the given confidence level
+     * @throws IllegalArgumentException if the confidence level is unsupported
+     */
+    private double getZScoreFromConfidenceLevel(double confidenceLevel) {
+
+        if (confidenceLevel == 0.90) return 1.28;
+        if (confidenceLevel == 0.95) return 1.645;
+        if (confidenceLevel == 0.99) return 2.33;
+        throw new IllegalArgumentException("Unsupported confidence level: " + confidenceLevel);
+    }
+
+
+
 
 
 }
