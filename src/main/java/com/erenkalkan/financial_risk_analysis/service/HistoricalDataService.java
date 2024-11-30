@@ -13,10 +13,5 @@ public interface HistoricalDataService {
 
     void deleteById(Long id);
 
-    List<Double> fetchHistoricalData(Asset asset);
-
-    double findMarketReturns(Asset asset);
-
-
 
 }

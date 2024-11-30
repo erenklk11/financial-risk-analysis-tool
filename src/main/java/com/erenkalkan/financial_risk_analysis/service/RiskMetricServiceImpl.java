@@ -82,31 +82,37 @@ public class RiskMetricServiceImpl implements RiskMetricService {
      */
     @Override
     public double calculateBeta(List<Double> investmentReturns, List<Double> marketReturns) {
-
         if (investmentReturns == null || marketReturns == null || investmentReturns.size() != marketReturns.size()) {
             throw new IllegalArgumentException("Returns lists must be non-null and of the same size");
         }
 
+        // Calculate the means for investment and market returns
         double investmentMean = investmentReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
         double marketMean = marketReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
 
+        // Calculate covariance and market variance in a single loop for efficiency
         double covariance = 0.0;
+        double marketVariance = 0.0;
         for (int i = 0; i < investmentReturns.size(); i++) {
-            covariance += (investmentReturns.get(i) - investmentMean) * (marketReturns.get(i) - marketMean);
+            double investmentDiff = investmentReturns.get(i) - investmentMean;
+            double marketDiff = marketReturns.get(i) - marketMean;
+
+            covariance += investmentDiff * marketDiff;
+            marketVariance += marketDiff * marketDiff;
         }
+
         covariance /= investmentReturns.size();
+        marketVariance /= marketReturns.size();
 
-        double marketVariance = marketReturns.stream()
-                .mapToDouble(r -> Math.pow(r - marketMean, 2))
-                .average()
-                .orElse(0.0);
-
+        // Ensure market variance is not zero
         if (marketVariance == 0) {
             throw new IllegalArgumentException("Market variance cannot be zero");
         }
 
+        // Return beta, the ratio of covariance to market variance
         return covariance / marketVariance;
     }
+
 
     /**
      * Calculate Alpha.

@@ -6,13 +6,12 @@ import com.erenkalkan.financial_risk_analysis.service.AssetService;
 import com.erenkalkan.financial_risk_analysis.service.HistoricalDataService;
 import com.erenkalkan.financial_risk_analysis.service.PortfolioService;
 import com.erenkalkan.financial_risk_analysis.service.RiskMetricService;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -39,35 +38,6 @@ public class RiskMetricHelper {
     private final PortfolioService portfolioService;
     private final HistoricalDataService historicalDataService;
     private final AssetService assetService;
-
-
-    /**
-     * Find investment returns for a given portfolio.
-     *
-     * @param portfolio the portfolio to fetch returns for
-     * @return a list of investment returns
-     */
-    public List<Double> findInvestmentReturns(Portfolio portfolio) {
-        return assetService.findInvestmentReturnsByPortfolio(portfolio);
-    }
-
-
-    /**
-     * Find market returns (S&P 500) for a given portfolio.
-     *
-     * @param portfolio the portfolio to fetch the marketreturns for
-     * @return a list of market returns relative to the purchase date of each asset in a portfolio
-     */
-    public List<Double> findMarketReturns(Portfolio portfolio) {
-
-        List<Double> marketReturns = new ArrayList<>();
-
-        for(int i = 0; i < portfolio.getAssets().size(); i++) {
-            marketReturns.add(historicalDataService.findMarketReturns(portfolio.getAssets().get(i)));
-        }
-
-        return marketReturns;
-    }
 
 
     /**
@@ -206,6 +176,65 @@ public class RiskMetricHelper {
     }
 
 
+    public List<Double> calculateInvestmentReturns(Portfolio portfolio, int days) {
+        List<Double> investmentReturns = new ArrayList<>();
+
+        List<Asset> assets = portfolio.getAssets();
+
+        // Calculate the target historical date (30 days ago)
+        LocalDate historicalDate = LocalDate.now().minusDays(days);
+
+        for (Asset asset : assets) {
+            try {
+                // Fetch daily prices for the last 30 days
+                List<Double> dailyPrices = assetService.fetchPrices(asset, days);
+
+                // Calculate daily returns for the last 30 days (excluding the first day)
+                List<Double> dailyReturns = new ArrayList<>();
+                for (int i = 1; i < dailyPrices.size(); i++) {
+                    double dailyReturn = (dailyPrices.get(i) - dailyPrices.get(i - 1)) / dailyPrices.get(i - 1);
+                    dailyReturns.add(dailyReturn);
+                }
+
+                // Calculate the average of daily returns for the asset
+                double meanReturn = dailyReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                investmentReturns.add(meanReturn); // Add to the investment returns list
+
+            } catch (Exception e) {
+                // Log the error and skip the asset
+                System.err.println("Error fetching price for asset " + asset.getSymbol() + ": " + e.getMessage());
+            }
+        }
+
+        return investmentReturns;
+    }
+
+    public List<Double> calculateMarketReturns(String marketSymbol, int days) {
+
+        List<Double> marketReturns = new ArrayList<>();
+
+        Asset temp = new Asset();
+        temp.setSymbol(marketSymbol);
+
+            try {
+                // Fetch daily prices for the last 30 days
+                List<Double> dailyPrices = assetService.fetchPrices(temp, days);
+
+                // Calculate daily returns for the last 30 days (excluding the first day)
+                for (int i = 1; i < dailyPrices.size(); i++) {
+                    double dailyReturn = (dailyPrices.get(i) - dailyPrices.get(i - 1)) / dailyPrices.get(i - 1);
+                    marketReturns.add(dailyReturn);
+                }
+
+            } catch (Exception e) {
+                // Log the error and skip the asset
+                System.err.println("Error fetching price for asset " + temp.getSymbol() + ": " + e.getMessage());
+            }
+
+            return marketReturns;
+    }
+
+
 
     /**
      * Calculates the return on the market index (e.g., S&P 500) based on the earliest purchase date
@@ -227,7 +256,7 @@ public class RiskMetricHelper {
         asset.setSymbol("SPY");
         asset.setPurchaseDate(earliestPurchaseDate);
 
-        List<Double> prices = historicalDataService.fetchHistoricalData(asset);
+        List<Double> prices = assetService.fetchPrices(asset);
 
         // Price at purchase date is being stored first in the list, the current price after
 

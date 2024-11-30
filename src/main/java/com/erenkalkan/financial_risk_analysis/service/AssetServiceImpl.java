@@ -33,10 +33,6 @@ public class AssetServiceImpl implements  AssetService {
         return assetRepository.findAllByPortfolio(portfolio);
     }
 
-    @Override
-    public List<Double> findInvestmentReturnsByPortfolio(Portfolio portfolio) {
-        return assetRepository.findInvestmentReturnsByPortfolio(portfolio);
-    }
 
     @Override
     public void save(Asset asset) {
@@ -49,9 +45,9 @@ public class AssetServiceImpl implements  AssetService {
     }
 
     @Override
-    public List<Double> fetchPrices(Asset asset) {
+    public List<Double> fetchPrices(Asset asset, int lastXDays) {
 
-        List<Double> purchaseAndCurrentPrice = new ArrayList<>();
+        List<Double> prices = new ArrayList<>();
 
         try {
             String purchaseDate = asset.getPurchaseDate().toString();
@@ -70,18 +66,43 @@ public class AssetServiceImpl implements  AssetService {
             JSONObject jsonObject = new JSONObject(response.body());
             JSONObject timeSeries = jsonObject.getJSONObject("Time Series (Daily)");
 
-            if (timeSeries.has(purchaseDate)) {
-                JSONObject dayData = timeSeries.getJSONObject(purchaseDate);
-                purchaseAndCurrentPrice.add(dayData.getDouble(purchaseDate));
+            if(lastXDays == 1) {
+
+                // Means we only want 1 historical price = The price at the time of purchase
+
+                if (timeSeries.has(purchaseDate)) {
+                    JSONObject dayData = timeSeries.getJSONObject(purchaseDate);
+                    prices.add(dayData.getDouble("4. close"));
+                }
+                if (timeSeries.has(currentDate)) {
+                    JSONObject dayData = timeSeries.getJSONObject(currentDate);
+                    prices.add(dayData.getDouble("4. close"));
+                }
             }
-            if (timeSeries.has(currentDate)) {
-                JSONObject dayData = timeSeries.getJSONObject(currentDate);
-                purchaseAndCurrentPrice.add(dayData.getDouble(currentDate));
+
+            else {
+                // Fetch the last X days of prices, adjusting for weekends/holidays
+                int daysFetched = 0;
+                LocalDate targetDate = LocalDate.now();  // Start from today
+
+                while (daysFetched < lastXDays) {
+                    String dateStr = targetDate.toString();
+                    if (timeSeries.has(dateStr)) {
+                        JSONObject dayData = timeSeries.getJSONObject(dateStr);
+                        prices.add(dayData.getDouble("4. close"));  // Adjust this to match your desired price (e.g., close price)
+                        daysFetched++;
+                    }
+                    targetDate = targetDate.minusDays(1);  // Move one day back if no data found for this day
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return purchaseAndCurrentPrice;
+        return prices;
+    }
+
+    public List<Double> fetchPrices(Asset asset) {
+        return fetchPrices(asset, 1);
     }
 }

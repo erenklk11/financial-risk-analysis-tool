@@ -12,7 +12,4 @@ public interface HistoricalDataRepository extends JpaRepository<HistoricalData, 
 
     HistoricalData findAllByAsset(Asset asset);
 
-    @Query("SELECT (a.currentPrice - a.purchasePrice) / a.purchasePrice AS profit FROM HistoricalData a WHERE a.asset = :asset")
-    double findMarketReturns(@Param("asset") Asset asset);
-
 }

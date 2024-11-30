@@ -14,7 +14,4 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
 
     List<Asset> findAllByPortfolio(Portfolio portfolio);
 
-    @Query("SELECT (a.currentPrice - a.purchasePrice) / a.purchasePrice AS profit FROM Asset a WHERE a.portfolio = :portfolio")
-    List<Double> findInvestmentReturnsByPortfolio(@Param("portfolio") Portfolio portfolio);
-
 }
