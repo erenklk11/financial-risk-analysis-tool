@@ -131,14 +131,14 @@ public class RiskMetricServiceImpl implements RiskMetricService {
     /**
      * Calculate Value at Risk (VaR).
      *
-     * @param historicalMean       Mean return of the portfolio
-     * @param historicalVolatility Standard deviation of portfolio returns
+     * @param meanReturn       Mean return of the portfolio
+     * @param portfolioVolitalityWithCorrelation Standard deviation of portfolio returns
      * @param zScore               Z-score for the desired confidence level (e.g., 1.645 for 95%)
      * @return Value at Risk (VaR)
      */
     @Override
-    public double calculateValueAtRisk(double historicalMean, double historicalVolatility, double zScore) {
-        return historicalMean - zScore * historicalVolatility;
+    public double calculateValueAtRisk(double meanReturn, double portfolioVolitalityWithCorrelation, double zScore) {
+        return meanReturn - zScore * portfolioVolitalityWithCorrelation;
     }
 
     /**

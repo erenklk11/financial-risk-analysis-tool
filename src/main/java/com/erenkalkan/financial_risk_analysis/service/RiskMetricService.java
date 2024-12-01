@@ -23,7 +23,7 @@ public interface RiskMetricService {
 
     double calculateAlpha(double portfolioReturn, double marketReturn, double riskFreeRate, double beta);
 
-    double calculateValueAtRisk(double historicalMean, double historicalVolatility, double zScore);
+    double calculateValueAtRisk(double meanReturn, double portfolioVolitalityWithCorrelation, double zScore);
 
     double calculateMaximumDrawdown(List<Double> portfolioValues);
 }

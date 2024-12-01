@@ -14,6 +14,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -67,18 +68,28 @@ public class AssetServiceImpl implements  AssetService {
             JSONObject timeSeries = jsonObject.getJSONObject("Time Series (Daily)");
 
             if(lastXDays == 1) {
-
                 // Means we only want 1 historical price = The price at the time of purchase
+                List<String> datesToCheck = Arrays.asList(purchaseDate, currentDate); // List of dates to check
 
-                if (timeSeries.has(purchaseDate)) {
-                    JSONObject dayData = timeSeries.getJSONObject(purchaseDate);
-                    prices.add(dayData.getDouble("4. close"));
-                }
-                if (timeSeries.has(currentDate)) {
-                    JSONObject dayData = timeSeries.getJSONObject(currentDate);
-                    prices.add(dayData.getDouble("4. close"));
+                for (String date : datesToCheck) {
+                    boolean dataFound = false;
+                    String currentDateToCheck = date;
+
+                    // Try to get data for the date or go back one day if data is missing
+                    while (!dataFound && currentDateToCheck != null) {
+                        if (timeSeries.has(currentDateToCheck)) {
+                            JSONObject dayData = timeSeries.getJSONObject(currentDateToCheck);
+                            prices.add(dayData.getDouble("4. close"));
+                            dataFound = true; // Data is found for this date, stop the loop
+                        } else {
+                            // If no data found for this date, go back 1 day
+                            LocalDate dateObj = LocalDate.parse(currentDateToCheck);
+                            currentDateToCheck = dateObj.minusDays(1).toString();
+                        }
+                    }
                 }
             }
+
 
             else {
                 // Fetch the last X days of prices, adjusting for weekends/holidays
