@@ -305,7 +305,7 @@ public class RiskMetricHelper {
      * @return The volatility (standard deviation) of the portfolio, calculated based on historical returns of its assets.
      * @throws IllegalArgumentException if the portfolio contains no assets.
      */
-    public double calculatePortfolioVolatility(Portfolio portfolio, int days) {
+    public double calculatePortfolioVolatilityWithCorrelation(Portfolio portfolio, int days) {
         List<Asset> assets = portfolio.getAssets();
         int numAssets = assets.size();
 
@@ -468,10 +468,6 @@ public class RiskMetricHelper {
 
         return portfolioValues;
     }
-
-
-
-
 
 
 }

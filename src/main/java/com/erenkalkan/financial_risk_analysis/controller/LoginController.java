@@ -1,7 +1,10 @@
 package com.erenkalkan.financial_risk_analysis.controller;
 
+import com.erenkalkan.financial_risk_analysis.entity.Asset;
+import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
+import com.erenkalkan.financial_risk_analysis.entity.RiskMetric;
 import com.erenkalkan.financial_risk_analysis.entity.User;
-import com.erenkalkan.financial_risk_analysis.service.UserService;
+import com.erenkalkan.financial_risk_analysis.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,15 +19,20 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Controller
 public class LoginController {
 
     private final UserService userService;
+    private final AssetService assetService;
+    private final HistoricalDataService historicalDataService;
+    private final PortfolioService portfolioService;
+    private final RiskMetricService riskMetricService;
     private final AuthenticationManager authenticationManager;
+
 
     @GetMapping("/")
     public String signIn() {
@@ -37,7 +45,7 @@ public class LoginController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-
+        User user = userService.findByUsername(username);
 
         model.addAttribute("username", username);
 
@@ -56,15 +64,15 @@ public class LoginController {
     public String processSignUp(@ModelAttribute("newUser") User user, Model model, HttpServletRequest request) {
 
         try {
-            Optional<User> existingUser = userService.findByUsername(user.getUsername());
-            Optional<User> existingEmail = userService.findByEmail(user.getEmail());
+            User existingUser = userService.findByUsername(user.getUsername());
+            User existingEmail = userService.findByEmail(user.getEmail());
 
-            if (existingUser.isPresent()) {
+            if (existingUser == null) {
                 model.addAttribute("error", "Username is already taken. Please choose another.");
                 return "sign-up";
             }
 
-            if (existingEmail.isPresent()) {
+            if (existingEmail == null) {
                 model.addAttribute("error", "Email is already in use. Please use another.");
                 return "sign-up";
             }

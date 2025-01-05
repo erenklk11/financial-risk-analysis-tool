@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+</head>
+<body>
+
+<div style="padding: 20px;">
+  <h1>Welcome, <span th:text="${username}">User</span>!</h1>
+
+  <div>
+    <h2>Portfolio Overview</h2>
+
+    <!-- Portfolio Creation Form - Only show if no portfolio exists -->
+    <div th:if="${portfolio == null}" style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px;">
+      <h3>Create a Portfolio</h3>
+      <form th:action="@{/home/create}" method="post">
+        <label for="portfolioName">Portfolio Name:</label>
+        <input type="text" id="portfolioName" name="name" required>
+        <button type="submit">Create Portfolio</button>
+      </form>
+    </div>
+
+    <!-- Portfolio Details - Show if portfolio exists -->
+    <div th:if="${portfolio != null}">
+      <h3>Portfolio Name: <span th:text="${portfolio.name}">Portfolio Name</span></h3>
+
+      <!-- Button to show asset creation form -->
+      <button onclick="document.getElementById('addAssetForm').style.display='block';">Add New Asset</button>
+
+      <!-- Asset Creation Form -->
+      <div id="addAssetForm" style="display:none; border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+        <h3>Add New Asset</h3>
+        <form th:action="@{/home/assets/add}" method="post">
+          <!-- CSRF Token -->
+          <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+
+          <label for="assetSymbol">Stock Symbol:</label>
+          <input type="text" id="assetSymbol" name="symbol" required autocomplete="off">
+          <div th:if="${suggestions != null}">
+            <ul>
+              <li th:each="suggestion : ${suggestions}">
+                <span th:text="${suggestion.name}">Apple Inc.</span>
+                <span th:text="${suggestion.symbol}">AAPL</span>
+              </li>
+            </ul>
+          </div>
+          <br><br>
+
+          <label for="purchaseDate">Purchase Date:</label>
+          <input type="date" id="purchaseDate" name="purchaseDate" required><br><br>
+
+          <label for="quantity">Quantity:</label>
+          <input type="number" id="quantity" name="quantity" required><br><br>
+
+          <button type="submit">Add Asset</button>
+        </form>
+      </div>
+
+      <!-- Always show assets table -->
+      <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+        <h3>Assets</h3>
+        <table border="1" cellspacing="0" cellpadding="5">
+          <thead>
+          <tr>
+            <th>Asset Name</th>
+            <th>Symbol</th>
+            <th>Quantity</th>
+            <th>Current Price</th>
+            <th>Return (%)</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="asset : ${assets}" th:if="${assets != null and assets.size() > 0}">
+            <td th:text="${asset.name}">Asset Name</td>
+            <td th:text="${asset.symbol}">Symbol</td>
+            <td th:text="${asset.quantity}">Quantity</td>
+            <td th:text="${asset.currentPrice}">Current Price</td>
+            <td th:text="${(asset.currentPrice - asset.purchasePrice) / asset.purchasePrice * 100}">Return</td>
+          </tr>
+          </tbody>
+        </table>
+
+        <!-- Display message if no assets -->
+        <div th:if="${assets == null or assets.size() == 0}">
+          <p>No assets available in your portfolio.</p>
+        </div>
+      </div>
+
+      <!-- Display risk metric if available -->
+      <div th:if="${riskMetric != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+        <h3>Risk Metrics</h3>
+        <p><strong>Value at Risk:</strong> <span th:text="${riskMetric.valueAtRisk}">0</span></p>
+        <p><strong>Sharpe Ratio:</strong> <span th:text="${riskMetric.sharpeRatio}">0</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+
+
+
+

@@ -6,5 +6,10 @@
 </head>
 <body>
 <h1>Welcome, <span th:text="${username}">User</span>!</h1>
+
+<form th:action="@{/home}" method="GET">
+    <button type="submit">Go to Homepage</button>
+</form>
 </body>
 </html>
+
