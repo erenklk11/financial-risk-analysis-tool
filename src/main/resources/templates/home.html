@@ -27,6 +27,11 @@
     <div th:if="${portfolio != null}">
       <h3>Portfolio Name: <span th:text="${portfolio.name}">Portfolio Name</span></h3>
 
+      <!-- Display error message dynamically -->
+      <div th:if="${errorMessage != null}" style="color: red; margin-bottom: 10px;">
+        <p th:text="${errorMessage}"></p>
+      </div>
+
       <!-- Button to show asset creation form -->
       <button onclick="document.getElementById('addAssetForm').style.display='block';">Add New Asset</button>
 
@@ -42,8 +47,6 @@
           <div th:if="${suggestions != null}">
             <ul>
               <li th:each="suggestion : ${suggestions}">
-                <span th:text="${suggestion.name}">Apple Inc.</span>
-                <span th:text="${suggestion.symbol}">AAPL</span>
               </li>
             </ul>
           </div>
@@ -53,7 +56,9 @@
           <input type="date" id="purchaseDate" name="purchaseDate" required><br><br>
 
           <label for="quantity">Quantity:</label>
-          <input type="number" id="quantity" name="quantity" required><br><br>
+          <input type="number" id="quantity" name="quantity" required
+                 min="1" max="100000" step="1" style="appearance: textfield;"><br><br>
+
 
           <button type="submit">Add Asset</button>
         </form>

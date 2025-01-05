@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -97,7 +98,7 @@ public class MainController {
     public String addAsset(@RequestParam("symbol") String symbol,
                            @RequestParam("purchaseDate") String purchaseDate,
                            @RequestParam("quantity") int quantity,
-                           Model model) {
+                           RedirectAttributes redirectAttributes) {
         try {
             log.debug("Starting asset addition process for symbol: {}", symbol);
 
@@ -110,8 +111,8 @@ public class MainController {
 
             if (responseEntity.getBody() == null) {
                 log.error("Received null response body from Alpha Vantage API");
-                model.addAttribute("errorMessage", "Unable to validate stock symbol. Please try again later.");
-                return "home";
+                redirectAttributes.addFlashAttribute("errorMessage", "Unable to validate stock symbol. Please try again later.");
+                return "redirect:/home";
             }
 
             Map<String, Object> response = responseEntity.getBody();
@@ -132,8 +133,8 @@ public class MainController {
             }
 
             if (!isValid || stockName == null) {
-                model.addAttribute("errorMessage", "Invalid stock symbol. Please try again.");
-                return "home";
+                redirectAttributes.addFlashAttribute("errorMessage", "Invalid stock symbol. Please try again.");
+                return "redirect:/home";
             }
 
             // Parse purchaseDate into LocalDate
@@ -143,22 +144,22 @@ public class MainController {
                 parsedDate = LocalDate.parse(purchaseDate, formatter);
             } catch (DateTimeParseException e) {
                 log.error("Date parsing error for {}: {}", purchaseDate, e.getMessage());
-                model.addAttribute("errorMessage", "Invalid date format. Use 'yyyy-MM-dd'.");
-                return "home";
+                redirectAttributes.addFlashAttribute("errorMessage", "Invalid date format. Use 'yyyy-MM-dd'.");
+                return "redirect:/home";
             }
 
             User user = getCurrentUser();
             if (user == null) {
                 log.error("No user found in current session");
-                model.addAttribute("errorMessage", "User session expired. Please login again.");
+                redirectAttributes.addFlashAttribute("errorMessage", "User session expired. Please login again.");
                 return "redirect:/login";
             }
 
             Portfolio userPortfolio = portfolioService.findByUser(user);
             if (userPortfolio == null) {
                 log.error("No portfolio found for user: {}", user.getId());
-                model.addAttribute("errorMessage", "Portfolio not found. Please contact support.");
-                return "home";
+                redirectAttributes.addFlashAttribute("errorMessage", "Portfolio not found. Please contact support.");
+                return "redirect:/home";
             }
 
             Asset temp = new Asset();
@@ -172,8 +173,8 @@ public class MainController {
             List<Double> currentPrices = assetService.fetchPrices(temp, 0);
             if (currentPrices == null || currentPrices.isEmpty()) {
                 log.error("Failed to fetch current price for symbol: {}", symbol);
-                model.addAttribute("errorMessage", "Unable to fetch current price. Please try again later.");
-                return "home";
+                redirectAttributes.addFlashAttribute("errorMessage", "Unable to fetch current price. Please try again later.");
+                return "redirect:/home";
             }
             temp.setCurrentPrice(currentPrices.getFirst());
 
@@ -181,8 +182,8 @@ public class MainController {
             List<Double> historicalPrices = assetService.fetchPrices(temp, 1);
             if (historicalPrices == null || historicalPrices.isEmpty()) {
                 log.error("Failed to fetch historical price for symbol: {}", symbol);
-                model.addAttribute("errorMessage", "Unable to fetch historical price. Please try again later.");
-                return "home";
+                redirectAttributes.addFlashAttribute("errorMessage", "Unable to fetch historical price. Please try again later.");
+                return "redirect:/home";
             }
             temp.setPurchasePrice(historicalPrices.getFirst());
 
@@ -199,8 +200,8 @@ public class MainController {
 
         } catch (Exception e) {
             log.error("Error while adding asset: {}", e.getMessage(), e);
-            model.addAttribute("errorMessage", "An unexpected error occurred. Please try again later.");
-            return "home";
+            redirectAttributes.addFlashAttribute("errorMessage", "An unexpected error occurred. Please try again later.");
+            return "redirect:/home";
         }
     }
 

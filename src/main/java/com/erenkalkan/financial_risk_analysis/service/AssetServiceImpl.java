@@ -56,16 +56,6 @@ public class AssetServiceImpl implements  AssetService {
     }
 
     private static final Logger log = LoggerFactory.getLogger(MainController.class);
-//    @PostConstruct
-//    public void init() {
-//        log.info("Initialized AssetService with API URL: {}", API_URL);
-//        if (API_URL == null || API_URL.trim().isEmpty()) {
-//            throw new IllegalStateException("API URL not properly configured");
-//        }
-//        if (API_URL == null || API_URL.trim().isEmpty()) {
-//            throw new IllegalStateException("API key not properly configured");
-//        }
-//    }
 
     @Override
     public List<Double> fetchPrices(Asset asset, int lastXDays) {
