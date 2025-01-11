@@ -22,6 +22,7 @@ CREATE TABLE Assets (
     name VARCHAR(100) NOT NULL,
     symbol VARCHAR(10) NOT NULL,
     quantity DECIMAL(15, 2) NOT NULL,
+    purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     purchase_price DECIMAL(15, 2) NOT NULL,
     current_price DECIMAL(15, 2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

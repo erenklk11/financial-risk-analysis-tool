@@ -5,6 +5,7 @@ import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
 import com.erenkalkan.financial_risk_analysis.entity.RiskMetric;
 import com.erenkalkan.financial_risk_analysis.entity.User;
 import com.erenkalkan.financial_risk_analysis.service.*;
+import com.erenkalkan.financial_risk_analysis.util.PieChartHelper;
 import com.erenkalkan.financial_risk_analysis.util.RiskMetricHelper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -247,6 +248,45 @@ public class MainController {
         return "redirect:/home";
     }
 
+
+    @ModelAttribute("pieChartData")
+    public List<PieChartHelper> getPieChartData(Model model) {
+        List<Asset> assets = assetService.findAll(portfolioService.findByUser(getCurrentUser()));// get your assets however you currently do
+        double total = assets.stream()
+                .mapToDouble(a -> a.getCurrentPrice() * a.getQuantity())
+                .sum();
+
+        List<PieChartHelper> pieData = new ArrayList<>();
+        String[] colors = {"#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"};
+        double currentAngle = 0;
+
+        for (int i = 0; i < assets.size(); i++) {
+            Asset asset = assets.get(i);
+            double value = (asset.getCurrentPrice() * asset.getQuantity()) / total;
+            double angle = value * 2 * Math.PI;
+
+            // Calculate the path
+            double x1 = Math.cos(currentAngle);
+            double y1 = Math.sin(currentAngle);
+            double x2 = Math.cos(currentAngle + angle);
+            double y2 = Math.sin(currentAngle + angle);
+
+            String path = String.format("M %.4f %.4f A 1 1 0 %d 1 %.4f %.4f L 0 0",
+                    x1, y1,
+                    angle > Math.PI ? 1 : 0,
+                    x2, y2);
+
+            pieData.add(new PieChartHelper(
+                    value * 100, // percentage
+                    colors[i % colors.length],
+                    path
+            ));
+
+            currentAngle += angle;
+        }
+
+        return pieData;
+    }
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

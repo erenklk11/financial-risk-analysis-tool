@@ -86,7 +86,7 @@ table {
 /* Table headers */
 th {
   background-color: #f8f9fa;
-  padding: 0.4rem; /* Increase padding for better spacing */
+  padding: 0.3rem; /* Increase padding for better spacing */
   text-align: left;
   font-weight: 600; /* Slightly bolder */
   font-size: 0.9rem; /* Updated for better readability */
@@ -101,10 +101,17 @@ td {
   vertical-align: middle;
 }
 
+/* Remove spinner buttons for Webkit browsers (Chrome, Safari, Edge) */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* Input and Buttons in Table Cells */
 td input[type="number"] {
-  width: calc(100% - 0.5rem); /* Adjust width for smaller padding */
-  padding: 0.25rem;  /* Reduced padding */
+  width: 55px; /* Adjust width for smaller padding */
+  padding: 0.4rem;  /* Reduced padding */
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 0.85rem;  /* Smaller font size */
@@ -114,9 +121,9 @@ td input[type="number"] {
 
 td form button {
   display: block;
-  width: calc(100% - 1rem); /* Align with input width */
+  width: 60px; /* Align with input width */
   margin: 0 auto;
-  padding: 0.5rem;
+  padding: 0.3rem;
   text-align: center;
   background-color: #007bff;
   color: white;
@@ -130,13 +137,45 @@ td form button:hover {
   background-color: #0056b3;
 }
 
-/* Delete Button Specific */
-form[th\:action="@{/home/assets/delete}"] button {
-  background-color: #dc3545;
+/* Save Button */
+td form button.save-btn,
+button.save-btn {
+  display: inline-block;
+  width: 45px;
+  margin: 0;
+  padding: 0.3rem;
+  text-align: center;
+  background-color: #007bff;
+  color: white;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-form[th\:action="@{/home/assets/delete}"] button:hover {
+td form button.save-btn:hover,
+button.save-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Delete Button */
+td form button.delete-btn,
+button.delete-btn {
+  background-color: #dc3545;
+  width: 60px;
+  padding: 0.3;
+}
+
+td form button.delete-btn:hover,
+button.delete-btn:hover {
   background-color: #a71d2a;
+}
+
+/* Quantity cell layout */
+td .quantity-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;  /* Space between input and button */
 }
 
 /* Make table scrollable on smaller screens */
@@ -216,4 +255,42 @@ div[style*="color: red"] {
     display: block;
     overflow-x: auto;
   }
+}
+
+/* Pie Chart Container */
+.chart-container {
+  border: 1px solid #ccc;
+  padding: 15px;
+  margin-top: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* SVG Styling */
+.chart-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Legend Styling */
+.chart-legend {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+  border-radius: 2px;
 }

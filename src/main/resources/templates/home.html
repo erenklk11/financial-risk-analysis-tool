@@ -26,10 +26,7 @@
 
     <!-- Portfolio Details - Show if portfolio exists -->
     <div th:if="${portfolio != null}">
-      <h4>
-        Portfolio Name: <span th:text="${portfolio.name}">Portfolio Name</span>
-        | Total Value: $<span th:text="${portfolio.totalValue}">0.00</span>
-      </h4>
+      <h4>Total Value: $<span th:text="${portfolio.totalValue}">0.00</span></h4>
 
       <!-- Display success message dynamically -->
       <div th:if="${successMessage != null}" style="color: green; margin-bottom: 10px;">
@@ -74,6 +71,7 @@
       </div>
 
       <!-- Always show assets table -->
+      <div style="display: flex; gap: 20px;">
       <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
         <h3>Assets</h3>
         <table border="1" cellspacing="0" cellpadding="5">
@@ -98,8 +96,10 @@
                 <!-- Asset ID -->
                 <input type="hidden" name="id" th:value="${asset.id}" />
                 <!-- Quantity -->
+                <div class="quantity-container">
                 <input type="number" name="quantity" th:value="${asset.quantity}" required min="1" step="any" />
-                <button type="submit">Save</button>
+                <button class="save-btn" type="submit">Save</button>
+                </div>
               </form>
             </td>
             <td th:text="${asset.currentPrice}">Current Price</td>
@@ -109,7 +109,7 @@
               <form th:action="@{/home/assets/delete}" method="post" style="display:inline;">
                 <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
                 <input type="hidden" name="id" th:value="${asset.id}" />
-                <button type="submit">Delete</button>
+                <button class="delete-btn" type="submit">Delete</button>
               </form>
             </td>
           </tr>
@@ -117,7 +117,30 @@
         </table>
       </div>
 
+      <!-- Portfolio Distribution Chart -->
+      <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+        <h3>Portfolio Distribution</h3>
+        <div style="width: 300px; height: 300px; margin: 0 auto;">
+          <svg viewBox="-1 -1 2 2" style="transform: rotate(-90deg)">
+            <!-- Background circle -->
+            <circle r="1" cx="0" cy="0" fill="#f2f2f2"/>
 
+            <!-- Pie slices -->
+            <path th:each="slice : ${pieChartData}"
+                  th:attr="d=${slice.path}"
+                  th:style="|fill: ${slice.color}|"/>
+          </svg>
+
+          <!-- Legend -->
+          <div style="margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+            <div th:each="asset, stat : ${assets}" style="display: flex; align-items: center; margin-right: 15px;">
+              <div th:style="|width: 12px; height: 12px; margin-right: 5px; background-color: ${pieChartData[stat.index].color}; border-radius: 2px;|"></div>
+              <span th:text="|${asset.symbol} (${#numbers.formatDecimal(pieChartData[stat.index].value, 1, 1)}%)|">AAPL (25.5%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
 
       <!-- Display message if no assets -->
         <div th:if="${assets == null or assets.size() == 0}">
