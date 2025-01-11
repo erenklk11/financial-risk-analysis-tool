@@ -10,6 +10,8 @@ import java.util.List;
 public interface AssetService {
 
 
+    Asset findById(Long id);
+
     List<Asset> findAll(Portfolio portfolio);
 
     void save(Asset asset);

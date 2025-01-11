@@ -1,0 +1,219 @@
+/* Base styles and resets */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f5f5f5;
+  padding: 2rem;
+}
+
+/* Main container width limitation */
+div[style*="padding: 20px"] {
+  max-width: 50%;
+  min-width: 600px;
+}
+
+/* Typography */
+h1 {
+  font-size: 2.5rem;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  font-size: 1.75rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: #34495e;
+  margin: 1rem 0;
+}
+
+/* Portfolio header */
+div[th\:if="${portfolio != null}"] h3 {
+  font-size: 1.25rem;
+  color: #2c3e50;
+  margin: 1rem 0 1.5rem 0;
+}
+
+/* Button styling */
+button {
+  background-color: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+button:hover {
+  background-color: #357abd;
+}
+
+/* Card styling */
+div[style*="border: 1px solid #ccc"] {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Table container */
+div[style*="margin-top: 20px"] {
+  width: 100%;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 1rem; /* Updated for better readability */
+  margin-top: 1rem; /* Add spacing above the table */
+}
+
+/* Table headers */
+th {
+  background-color: #f8f9fa;
+  padding: 0.4rem; /* Increase padding for better spacing */
+  text-align: left;
+  font-weight: 600; /* Slightly bolder */
+  font-size: 0.9rem; /* Updated for better readability */
+  color: #2c3e50;
+  border-bottom: 2px solid #ddd; /* Add stronger separation */
+}
+
+/* Table cells */
+td {
+  padding: 1rem; /* Increase padding for better spacing */
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+/* Input and Buttons in Table Cells */
+td input[type="number"] {
+  width: calc(100% - 0.5rem); /* Adjust width for smaller padding */
+  padding: 0.25rem;  /* Reduced padding */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;  /* Smaller font size */
+  margin-bottom: 0.25rem; /* Reduced space below input */
+}
+
+
+td form button {
+  display: block;
+  width: calc(100% - 1rem); /* Align with input width */
+  margin: 0 auto;
+  padding: 0.5rem;
+  text-align: center;
+  background-color: #007bff;
+  color: white;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+td form button:hover {
+  background-color: #0056b3;
+}
+
+/* Delete Button Specific */
+form[th\:action="@{/home/assets/delete}"] button {
+  background-color: #dc3545;
+}
+
+form[th\:action="@{/home/assets/delete}"] button:hover {
+  background-color: #a71d2a;
+}
+
+/* Make table scrollable on smaller screens */
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  th, td {
+    white-space: nowrap; /* Prevent breaking content */
+  }
+}
+
+
+/* Return percentage formatting */
+td:nth-child(5) {
+  color: #333;
+}
+
+/* Add New Asset button */
+.add-asset-btn {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+/* Asset form */
+#addAssetForm {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Form inputs */
+input[type="text"],
+input[type="date"] {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+/* Success and error messages */
+div[style*="color: green"],
+div[style*="color: red"] {
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+div[style*="color: green"] {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+div[style*="color: red"] {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+  }
+
+  div[style*="padding: 20px"] {
+    max-width: 100%;
+    min-width: auto;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+}

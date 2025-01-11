@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+  <link rel="stylesheet" href="styles.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home</title>
@@ -8,10 +9,10 @@
 <body>
 
 <div style="padding: 20px;">
-  <h1>Welcome, <span th:text="${username}">User</span>!</h1>
+  <h4>Welcome, <span th:text="${username}">User</span></h4>
 
   <div>
-    <h2>Portfolio Overview</h2>
+    <h3>Portfolio Overview</h3>
 
     <!-- Portfolio Creation Form - Only show if no portfolio exists -->
     <div th:if="${portfolio == null}" style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px;">
@@ -25,7 +26,15 @@
 
     <!-- Portfolio Details - Show if portfolio exists -->
     <div th:if="${portfolio != null}">
-      <h3>Portfolio Name: <span th:text="${portfolio.name}">Portfolio Name</span></h3>
+      <h4>
+        Portfolio Name: <span th:text="${portfolio.name}">Portfolio Name</span>
+        | Total Value: $<span th:text="${portfolio.totalValue}">0.00</span>
+      </h4>
+
+      <!-- Display success message dynamically -->
+      <div th:if="${successMessage != null}" style="color: green; margin-bottom: 10px;">
+        <p th:text="${successMessage}"></p>
+      </div>
 
       <!-- Display error message dynamically -->
       <div th:if="${errorMessage != null}" style="color: red; margin-bottom: 10px;">
@@ -75,20 +84,42 @@
             <th>Quantity</th>
             <th>Current Price</th>
             <th>Return (%)</th>
+            <th>Actions</th>
           </tr>
           </thead>
           <tbody>
           <tr th:each="asset : ${assets}" th:if="${assets != null and assets.size() > 0}">
             <td th:text="${asset.name}">Asset Name</td>
             <td th:text="${asset.symbol}">Symbol</td>
-            <td th:text="${asset.quantity}">Quantity</td>
+            <td>
+              <form th:action="@{/home/assets/update}" method="post">
+                <!-- CSRF Token -->
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                <!-- Asset ID -->
+                <input type="hidden" name="id" th:value="${asset.id}" />
+                <!-- Quantity -->
+                <input type="number" name="quantity" th:value="${asset.quantity}" required min="1" step="any" />
+                <button type="submit">Save</button>
+              </form>
+            </td>
             <td th:text="${asset.currentPrice}">Current Price</td>
-            <td th:text="${(asset.currentPrice - asset.purchasePrice) / asset.purchasePrice * 100}">Return</td>
+            <td th:text="${#numbers.formatDecimal((asset.currentPrice - asset.purchasePrice) / asset.purchasePrice * 100, 1, 2)}">Return</td>
+            <td>
+              <!-- Delete Button -->
+              <form th:action="@{/home/assets/delete}" method="post" style="display:inline;">
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                <input type="hidden" name="id" th:value="${asset.id}" />
+                <button type="submit">Delete</button>
+              </form>
+            </td>
           </tr>
           </tbody>
         </table>
+      </div>
 
-        <!-- Display message if no assets -->
+
+
+      <!-- Display message if no assets -->
         <div th:if="${assets == null or assets.size() == 0}">
           <p>No assets available in your portfolio.</p>
         </div>

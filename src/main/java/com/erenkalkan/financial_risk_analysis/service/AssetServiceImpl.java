@@ -39,6 +39,12 @@ public class AssetServiceImpl implements  AssetService {
 
     private final AssetRepository assetRepository;
 
+
+    @Override
+    public Asset findById(Long id) {
+        return assetRepository.findById(id).orElseThrow();
+    }
+
     @Override
     public List<Asset> findAll(Portfolio portfolio) {
         return assetRepository.findAllByPortfolio(portfolio);

@@ -5,6 +5,7 @@ import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
 import com.erenkalkan.financial_risk_analysis.entity.RiskMetric;
 import com.erenkalkan.financial_risk_analysis.entity.User;
 import com.erenkalkan.financial_risk_analysis.service.*;
+import com.erenkalkan.financial_risk_analysis.util.RiskMetricHelper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public class MainController {
     private final HistoricalDataService historicalDataService;
     private final PortfolioService portfolioService;
     private final RiskMetricService riskMetricService;
+    private final RiskMetricHelper riskMetricHelper;
 
     @RequestMapping("/home")
     public String getHome(Model model) {
@@ -57,8 +59,13 @@ public class MainController {
 
         try {
             portfolio = portfolioService.findByUser(user);
+
             if (portfolio != null) {
                 assets = assetService.findAll(portfolio);
+                for(Asset temp : assets){
+                    temp.setCurrentPrice(assetService.fetchPrices(temp).getFirst());
+                }
+                portfolio.setTotalValue(riskMetricHelper.calculateTotalPortfolioValue(portfolio));
                 riskMetric = riskMetricService.findByPortfolio(portfolio);
             }
         } catch (RuntimeException e) {
@@ -142,6 +149,12 @@ public class MainController {
             try {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                 parsedDate = LocalDate.parse(purchaseDate, formatter);
+
+                if(parsedDate.isAfter(LocalDate.now())){
+                    redirectAttributes.addFlashAttribute("errorMessage", "Purchase date cannot be after current date. Please try again.");
+                    return "redirect:/home";
+                }
+
             } catch (DateTimeParseException e) {
                 log.error("Date parsing error for {}: {}", purchaseDate, e.getMessage());
                 redirectAttributes.addFlashAttribute("errorMessage", "Invalid date format. Use 'yyyy-MM-dd'.");
@@ -163,7 +176,7 @@ public class MainController {
             }
 
             Asset temp = new Asset();
-            temp.setSymbol(symbol);
+            temp.setSymbol(symbol.toUpperCase());
             temp.setName(stockName);  // Set the name from API response
             temp.setQuantity(Double.valueOf(quantity));
             temp.setPurchaseDate(parsedDate);
@@ -196,6 +209,8 @@ public class MainController {
             assetService.save(temp);
 
             log.info("Successfully added new asset: {} ({}) for user: {}", stockName, symbol, user.getId());
+            redirectAttributes.addFlashAttribute("successMessage", "Asset added successfully!");
+
             return "redirect:/home";
 
         } catch (Exception e) {
@@ -204,6 +219,34 @@ public class MainController {
             return "redirect:/home";
         }
     }
+
+    @PostMapping("/home/assets/update")
+    public String updateAssetQuantity(@RequestParam("id") Long assetId,
+                                      @RequestParam("quantity") Double quantity,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            Asset asset = assetService.findById(assetId); // Find asset by ID
+            asset.setQuantity(quantity); // Update quantity
+            assetService.save(asset); // Save changes
+
+            redirectAttributes.addFlashAttribute("successMessage", "Asset updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating asset: " + e.getMessage());
+        }
+        return "redirect:/home";
+    }
+
+    @PostMapping("/home/assets/delete")
+    public String deleteAsset(@RequestParam("id") Long assetId, RedirectAttributes redirectAttributes) {
+        try {
+            assetService.deleteById(assetId); // Delete the asset by ID
+            redirectAttributes.addFlashAttribute("successMessage", "Asset deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting asset: " + e.getMessage());
+        }
+        return "redirect:/home";
+    }
+
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
