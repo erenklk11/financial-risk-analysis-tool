@@ -9,11 +9,14 @@
 </head>
 <body>
 
+<div style="display: flex; justify-content: center; align-items: flex-start; width: 100%; margin-top: 0px;">
+  <h4>Welcome, <span th:text="${username}!">User</span></h4>
+</div>
+
 <div style="padding: 20px;">
-  <h4>Welcome, <span th:text="${username}">User</span></h4>
 
   <div>
-    <h3>Portfolio Overview</h3>
+    <h2>Portfolio Overview</h2>
 
     <!-- Portfolio Creation Form - Only show if no portfolio exists -->
     <div th:if="${portfolio == null}" style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px;">
@@ -72,7 +75,7 @@
       </div>
 
       <!-- Always show assets table -->
-      <div style="display: flex; gap: 40px;">
+      <div style="display: flex; gap: 30px;">
       <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
         <h3>Assets</h3>
         <table border="1" cellspacing="0" cellpadding="5">
@@ -118,8 +121,14 @@
         </table>
       </div>
 
-        <div style="width: 50%; max-width: 500px;">
+        <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; width: 50%; max-width: 500px;">
+          <h3>Asset Distribution</h3>
           <canvas id="assetsPieChart"></canvas>
+        </div>
+
+        <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; width: 50%; max-width: 500px;">
+          <h3>Top Performers</h3>
+          <canvas id="winnersBarChart"></canvas>
         </div>
 
       </div>
@@ -132,7 +141,7 @@
 
       <!-- Display risk metric if available -->
       <div th:if="${riskMetric != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-        <h3>Risk Metrics</h3>
+        <h2>Risk Metrics</h2>
         <p><strong>Value at Risk:</strong> <span th:text="${riskMetric.valueAtRisk}">0</span></p>
         <p><strong>Sharpe Ratio:</strong> <span th:text="${riskMetric.sharpeRatio}">0</span></p>
       </div>
@@ -181,6 +190,66 @@
     });
   });
 </script>
+
+
+<script th:inline="javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // Asset Names and Returns (provided by the backend)
+    const assetNames = [[${assetNames}]];
+    const assetReturns = [[${assetReturns}]];
+
+    // Bar Chart for "Winners"
+    const winnersCtx = document.getElementById('winnersBarChart').getContext('2d');
+    new Chart(winnersCtx, {
+      type: 'bar',
+      data: {
+        labels: assetNames,
+        datasets: [{
+          label: 'Return (%)',
+          data: assetReturns,
+          backgroundColor: assetReturns.map(returnValue => returnValue >= 0 ? '#36A2EB' : '#FF6384'), // Blue for positive, red for negative
+          borderColor: '#000',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(tooltipItem) {
+                return `${tooltipItem.label}: ${tooltipItem.raw.toFixed(2)}%`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Assets'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Return (%)'
+            },
+            ticks: {
+              callback: function (value) {
+                return value + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+
 
 
 </body>

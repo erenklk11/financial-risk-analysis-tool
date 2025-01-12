@@ -59,6 +59,8 @@ public class MainController {
         RiskMetric riskMetric = null;
         List<String> assetNames = new ArrayList<>();
         List<Double> assetValues = new ArrayList<>();
+        List<Double> assetReturns = new ArrayList<>();
+
 
         try {
             portfolio = portfolioService.findByUser(user);
@@ -77,10 +79,20 @@ public class MainController {
                 assetValues = assets.stream()
                         .map(asset -> asset.getQuantity() * asset.getCurrentPrice())
                         .collect(Collectors.toList());
+                assetReturns = assets.stream()
+                        .map(asset -> (asset.getCurrentPrice() - asset.getPurchasePrice()) / asset.getPurchasePrice() * 100)
+                        .collect(Collectors.toList());
+
+                portfolioService.save(portfolio);
+                for(Asset temp : assets){
+                    assetService.save(temp);
+                }
+                riskMetricService.save(riskMetric);
             }
         } catch (RuntimeException e) {
             // Log error
             System.err.println(e + "\nPortfolio not found for user: " + user);
+            return "limitreached";
         }
 
         // Add attributes to model
@@ -91,6 +103,8 @@ public class MainController {
         model.addAttribute("riskMetric", riskMetric);
         model.addAttribute("assetNames", assetNames);
         model.addAttribute("assetValues", assetValues);
+        model.addAttribute("assetReturns", assetReturns);
+
 
         return "home";
     }
@@ -259,6 +273,11 @@ public class MainController {
         return "redirect:/home";
     }
 
+
+    @GetMapping("/limitreached")
+    public String limitReached() {
+        return "limitreached";
+    }
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
