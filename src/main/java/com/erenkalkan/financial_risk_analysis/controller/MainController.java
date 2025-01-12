@@ -5,7 +5,6 @@ import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
 import com.erenkalkan.financial_risk_analysis.entity.RiskMetric;
 import com.erenkalkan.financial_risk_analysis.entity.User;
 import com.erenkalkan.financial_risk_analysis.service.*;
-import com.erenkalkan.financial_risk_analysis.util.PieChartHelper;
 import com.erenkalkan.financial_risk_analysis.util.RiskMetricHelper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -31,6 +30,7 @@ import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -57,6 +57,8 @@ public class MainController {
         Portfolio portfolio = null;
         List<Asset> assets = new ArrayList<>();
         RiskMetric riskMetric = null;
+        List<String> assetNames = new ArrayList<>();
+        List<Double> assetValues = new ArrayList<>();
 
         try {
             portfolio = portfolioService.findByUser(user);
@@ -68,6 +70,13 @@ public class MainController {
                 }
                 portfolio.setTotalValue(riskMetricHelper.calculateTotalPortfolioValue(portfolio));
                 riskMetric = riskMetricService.findByPortfolio(portfolio);
+
+                assetNames = assets.stream()
+                        .map(Asset::getName)
+                        .collect(Collectors.toList());
+                assetValues = assets.stream()
+                        .map(asset -> asset.getQuantity() * asset.getCurrentPrice())
+                        .collect(Collectors.toList());
             }
         } catch (RuntimeException e) {
             // Log error
@@ -80,6 +89,8 @@ public class MainController {
         model.addAttribute("portfolio", portfolio);
         model.addAttribute("assets", assets);
         model.addAttribute("riskMetric", riskMetric);
+        model.addAttribute("assetNames", assetNames);
+        model.addAttribute("assetValues", assetValues);
 
         return "home";
     }
@@ -248,45 +259,6 @@ public class MainController {
         return "redirect:/home";
     }
 
-
-    @ModelAttribute("pieChartData")
-    public List<PieChartHelper> getPieChartData(Model model) {
-        List<Asset> assets = assetService.findAll(portfolioService.findByUser(getCurrentUser()));// get your assets however you currently do
-        double total = assets.stream()
-                .mapToDouble(a -> a.getCurrentPrice() * a.getQuantity())
-                .sum();
-
-        List<PieChartHelper> pieData = new ArrayList<>();
-        String[] colors = {"#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"};
-        double currentAngle = 0;
-
-        for (int i = 0; i < assets.size(); i++) {
-            Asset asset = assets.get(i);
-            double value = (asset.getCurrentPrice() * asset.getQuantity()) / total;
-            double angle = value * 2 * Math.PI;
-
-            // Calculate the path
-            double x1 = Math.cos(currentAngle);
-            double y1 = Math.sin(currentAngle);
-            double x2 = Math.cos(currentAngle + angle);
-            double y2 = Math.sin(currentAngle + angle);
-
-            String path = String.format("M %.4f %.4f A 1 1 0 %d 1 %.4f %.4f L 0 0",
-                    x1, y1,
-                    angle > Math.PI ? 1 : 0,
-                    x2, y2);
-
-            pieData.add(new PieChartHelper(
-                    value * 100, // percentage
-                    colors[i % colors.length],
-                    path
-            ));
-
-            currentAngle += angle;
-        }
-
-        return pieData;
-    }
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

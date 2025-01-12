@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="styles.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,7 +72,7 @@
       </div>
 
       <!-- Always show assets table -->
-      <div style="display: flex; gap: 20px;">
+      <div style="display: flex; gap: 40px;">
       <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
         <h3>Assets</h3>
         <table border="1" cellspacing="0" cellpadding="5">
@@ -117,29 +118,10 @@
         </table>
       </div>
 
-      <!-- Portfolio Distribution Chart -->
-      <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-        <h3>Portfolio Distribution</h3>
-        <div style="width: 300px; height: 300px; margin: 0 auto;">
-          <svg viewBox="-1 -1 2 2" style="transform: rotate(-90deg)">
-            <!-- Background circle -->
-            <circle r="1" cx="0" cy="0" fill="#f2f2f2"/>
-
-            <!-- Pie slices -->
-            <path th:each="slice : ${pieChartData}"
-                  th:attr="d=${slice.path}"
-                  th:style="|fill: ${slice.color}|"/>
-          </svg>
-
-          <!-- Legend -->
-          <div style="margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-            <div th:each="asset, stat : ${assets}" style="display: flex; align-items: center; margin-right: 15px;">
-              <div th:style="|width: 12px; height: 12px; margin-right: 5px; background-color: ${pieChartData[stat.index].color}; border-radius: 2px;|"></div>
-              <span th:text="|${asset.symbol} (${#numbers.formatDecimal(pieChartData[stat.index].value, 1, 1)}%)|">AAPL (25.5%)</span>
-            </div>
-          </div>
+        <div style="width: 50%; max-width: 500px;">
+          <canvas id="assetsPieChart"></canvas>
         </div>
-      </div>
+
       </div>
 
       <!-- Display message if no assets -->
@@ -158,9 +140,48 @@
   </div>
 </div>
 
+<script th:inline="javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    const assetNames = /*[[${assetNames}]]*/ [];
+    const assetValues = /*[[${assetValues}]]*/ [];
+
+
+    const ctx = document.getElementById('assetsPieChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: assetNames,
+        datasets: [{
+          label: 'Asset Distribution',
+          data: assetValues,
+          backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+          ],
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(tooltipItem) {
+                const value = assetValues[tooltipItem.dataIndex];
+                const total = assetValues.reduce((sum, val) => sum + val, 0);
+                const percentage = ((value / total) * 100).toFixed(2);
+                return `${assetNames[tooltipItem.dataIndex]}: ${percentage}%`;
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+
+
 </body>
 </html>
-
-
-
-

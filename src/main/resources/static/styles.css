@@ -38,6 +38,11 @@ h3 {
   margin: 1rem 0;
 }
 
+h4 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
 /* Portfolio header */
 div[th\:if="${portfolio != null}"] h3 {
   font-size: 1.25rem;
@@ -96,7 +101,8 @@ th {
 
 /* Table cells */
 td {
-  padding: 1rem; /* Increase padding for better spacing */
+  white-space: nowrap;
+  padding: 0.5rem; /* Increase padding for better spacing */
   border-bottom: 1px solid #ddd;
   vertical-align: middle;
 }
