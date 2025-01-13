@@ -43,7 +43,6 @@ public class MainController {
 
     private final AssetService assetService;
     private final UserService userService;
-    private final HistoricalDataService historicalDataService;
     private final PortfolioService portfolioService;
     private final RiskMetricService riskMetricService;
     private final RiskMetricHelper riskMetricHelper;
@@ -83,16 +82,16 @@ public class MainController {
                         .map(asset -> (asset.getCurrentPrice() - asset.getPurchasePrice()) / asset.getPurchasePrice() * 100)
                         .collect(Collectors.toList());
 
-                portfolioService.save(portfolio);
                 for(Asset temp : assets){
                     assetService.save(temp);
                 }
                 riskMetricService.save(riskMetric);
+                portfolioService.save(portfolio);
+
             }
         } catch (RuntimeException e) {
             // Log error
             System.err.println(e + "\nPortfolio not found for user: " + user);
-            return "limitreached";
         }
 
         // Add attributes to model
@@ -119,6 +118,7 @@ public class MainController {
         Portfolio portfolio = new Portfolio();
         portfolio.setName(name);
         portfolio.setUser(user);
+
         portfolioService.save(portfolio);
 
         // Redirect to home page to see the new portfolio
@@ -234,6 +234,11 @@ public class MainController {
             log.debug("Saving asset: {}", temp);
             assetService.save(temp);
 
+            //RiskMetric tempRM = calculateRiskMetrics(userPortfolio);
+
+            portfolioService.save(userPortfolio);
+            //riskMetricService.save(tempRM);
+
             log.info("Successfully added new asset: {} ({}) for user: {}", stockName, symbol, user.getId());
             redirectAttributes.addFlashAttribute("successMessage", "Asset added successfully!");
 
@@ -253,6 +258,12 @@ public class MainController {
         try {
             Asset asset = assetService.findById(assetId); // Find asset by ID
             asset.setQuantity(quantity); // Update quantity
+
+            Portfolio portfolio = asset.getPortfolio();
+            RiskMetric temp = calculateRiskMetrics(portfolio);
+
+            portfolioService.save(portfolio);
+            riskMetricService.save(temp);
             assetService.save(asset); // Save changes
 
             redirectAttributes.addFlashAttribute("successMessage", "Asset updated successfully!");
@@ -284,4 +295,28 @@ public class MainController {
         String username = authentication.getName();
         return userService.findByUsername(username);
     }
+
+    private RiskMetric calculateRiskMetrics(Portfolio portfolio) {
+
+        RiskMetric temp = new RiskMetric();
+
+        List <Double> investmentReturns = riskMetricHelper.calculateInvestmentReturns(portfolio, 60);
+        double riskFreeRate = riskMetricHelper.getRiskFreeRate("monthly", "5year");
+        List <Double> marketReturns = riskMetricHelper.calculateMarketReturns("SPY", 60);
+        double portfolioReturn = riskMetricHelper.calculatePortfolioReturn(portfolio, 60);
+        double marketReturn = riskMetricHelper.calculateMarketReturn("SPY", 60);
+
+
+        temp.setPortfolio(portfolio);
+        temp.setVolatility(riskMetricService.calculateVolatility(investmentReturns));
+        temp.setSharpeRatio(riskMetricService.calculateSharpeRatio(investmentReturns, riskFreeRate));
+        temp.setBeta(riskMetricService.calculateBeta(investmentReturns, marketReturns));
+        temp.setAlpha(riskMetricService.calculateAlpha(portfolioReturn, marketReturn, riskFreeRate, temp.getBeta()));
+        temp.setMdd(riskMetricService.calculateMaximumDrawdown(riskMetricHelper.calculatePortfolioValues(portfolio, 60)));
+        temp.setVar(riskMetricService.calculateValueAtRisk(riskMetricHelper.calculateMeanReturn(portfolio), riskMetricHelper.calculatePortfolioVolatilityWithCorrelation(portfolio, 60), riskMetricHelper.getZScoreFromConfidenceLevel()));
+
+        return temp;
+    }
+
+
 }

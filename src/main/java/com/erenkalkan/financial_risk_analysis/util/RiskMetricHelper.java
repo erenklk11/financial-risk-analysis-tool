@@ -3,10 +3,8 @@ package com.erenkalkan.financial_risk_analysis.util;
 import com.erenkalkan.financial_risk_analysis.entity.Asset;
 import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
 import com.erenkalkan.financial_risk_analysis.service.AssetService;
-import com.erenkalkan.financial_risk_analysis.service.HistoricalDataService;
 import com.erenkalkan.financial_risk_analysis.service.PortfolioService;
 import com.erenkalkan.financial_risk_analysis.service.RiskMetricService;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -36,7 +34,6 @@ public class RiskMetricHelper {
 
     private final RiskMetricService riskMetricService;
     private final PortfolioService portfolioService;
-    private final HistoricalDataService historicalDataService;
     private final AssetService assetService;
 
 
@@ -405,11 +402,10 @@ public class RiskMetricHelper {
      * standard deviations a data point is from the mean. This method maps
      * common confidence levels (e.g., 90%, 95%, 99%) to their respective z-scores.
      *
-     * @param confidenceLevel the confidence level (e.g., 0.90 for 90%)
      * @return the z-score associated with the given confidence level
      * @throws IllegalArgumentException if the confidence level is unsupported
      */
-    private double getZScoreFromConfidenceLevel(double confidenceLevel) {
+    public double getZScoreFromConfidenceLevel() {
 
         if (confidenceLevel == 0.90) return 1.28;
         if (confidenceLevel == 0.95) return 1.645;

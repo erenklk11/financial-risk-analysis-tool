@@ -28,7 +28,6 @@ public class LoginController {
 
     private final UserService userService;
     private final AssetService assetService;
-    private final HistoricalDataService historicalDataService;
     private final PortfolioService portfolioService;
     private final RiskMetricService riskMetricService;
     private final AuthenticationManager authenticationManager;
