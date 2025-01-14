@@ -32,8 +32,7 @@ public class RiskMetricHelper {
     @Value("${risk.confidenceLevel}")
     private double confidenceLevel;
 
-    private final RiskMetricService riskMetricService;
-    private final PortfolioService portfolioService;
+
     private final AssetService assetService;
 
 
@@ -239,14 +238,6 @@ public class RiskMetricHelper {
      */
     public double calculateMeanReturn(Portfolio portfolio) {
         List<Asset> assets = portfolio.getAssets();
-        int numAssets = assets.size();
-
-        // Fetch historical data for all assets
-        Map<Asset, List<Double>> historicalPrices = new HashMap<>();
-        for (Asset asset : assets) {
-            List<Double> prices = assetService.fetchPrices(asset, 60); // Fetch 60 days of data
-            historicalPrices.put(asset, prices);
-        }
 
         // Calculate portfolio weights
         double totalValue = calculateTotalPortfolioValue(portfolio);
@@ -256,24 +247,25 @@ public class RiskMetricHelper {
             weights.put(asset, weight);
         }
 
-        // Calculate weighted mean return across periods
+        // Fetch 252 days of data for each asset
+        Map<Asset, List<Double>> historicalPrices = new HashMap<>();
+        for (Asset asset : assets) {
+            List<Double> prices = assetService.fetchPrices(asset, 252);
+            historicalPrices.put(asset, prices);
+        }
+
+        // Calculate daily returns and weighted mean return
         double portfolioMeanReturn = 0.0;
         for (Asset asset : assets) {
             List<Double> prices = historicalPrices.get(asset);
+            List<Double> returns = new ArrayList<>();
 
-            if (prices.size() < 60) {
-                System.err.println("Insufficient data for asset: " + asset.getSymbol());
-                continue;
+            for (int i = 1; i < prices.size(); i++) {
+                double dailyReturn = (prices.get(i) - prices.get(i-1)) / prices.get(i-1);
+                returns.add(dailyReturn);
             }
 
-            // Calculate 30-day and 60-day returns
-            double return30Days = (prices.get(29) - prices.get(0)) / prices.get(0); // Adjust index if prices are reverse-ordered
-            double return60Days = (prices.get(59) - prices.get(0)) / prices.get(0);
-
-            // Average return for this asset
-            double meanReturn = (return30Days + return60Days) / 2;
-
-            // Add weighted return to portfolio mean
+            double meanReturn = returns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
             portfolioMeanReturn += weights.get(asset) * meanReturn;
         }
 
@@ -430,35 +422,35 @@ public class RiskMetricHelper {
     public List<Double> calculatePortfolioValues(Portfolio portfolio, int days) {
         List<Double> portfolioValues = new ArrayList<>();
 
-        // Calculate the total portfolio value once, as it's constant throughout
-        double totalPortfolioValue = calculateTotalPortfolioValue(portfolio);
-
-        // Map to store daily prices for each asset
-        Map<Asset, List<Double>> assetValues = new HashMap<>();
-
-        // Loop through each asset in the portfolio and fetch their daily prices
+        // Get current quantities of each asset
+        Map<Asset, Double> quantities = new HashMap<>();
         for (Asset asset : portfolio.getAssets()) {
-            List<Double> dailyPrices = assetService.fetchPrices(asset, days);
-            assetValues.put(asset, dailyPrices);
+            quantities.put(asset, asset.getQuantity());
         }
 
-        // Loop through each day (up to 'days')
+        // Map to store daily prices for each asset
+        Map<Asset, List<Double>> assetPrices = new HashMap<>();
+
+        // Fetch historical prices
+        for (Asset asset : portfolio.getAssets()) {
+            List<Double> dailyPrices = assetService.fetchPrices(asset, days);
+            assetPrices.put(asset, dailyPrices);
+        }
+
+        // Calculate portfolio value for each day
         for (int i = 0; i < days; i++) {
             double dailyPortfolioValue = 0.0;
 
-            // Loop through each asset and calculate its weighted value on this day
+            // Sum up the value of each asset using fixed quantities
             for (Asset asset : portfolio.getAssets()) {
-                List<Double> dailyPrices = assetValues.get(asset);
-                if (dailyPrices != null && dailyPrices.size() > i) {
-                    double dailyPrice = dailyPrices.get(i);  // Price of the asset on day 'i'
-                    double assetWeight = (asset.getQuantity() * dailyPrice) / totalPortfolioValue;
-
-                    // Add the weighted asset value to the portfolio value for this day
-                    dailyPortfolioValue += dailyPrice * assetWeight;
+                List<Double> prices = assetPrices.get(asset);
+                if (prices != null && prices.size() > i) {
+                    double price = prices.get(i);
+                    double quantity = quantities.get(asset);
+                    dailyPortfolioValue += price * quantity;
                 }
             }
 
-            // Add the portfolio value for the current day to the list
             portfolioValues.add(dailyPortfolioValue);
         }
 

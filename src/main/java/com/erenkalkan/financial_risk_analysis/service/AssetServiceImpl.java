@@ -119,7 +119,7 @@ public class AssetServiceImpl implements  AssetService {
                 throw new RuntimeException("Empty response received from API");
             }
 
-            log.debug("Response body: {}", responseBody);
+//            log.debug("Response body: {}", responseBody);
 
             // Check if response is successful
             if (response.statusCode() != 200) {

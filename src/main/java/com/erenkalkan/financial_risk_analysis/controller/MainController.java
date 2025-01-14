@@ -233,11 +233,7 @@ public class MainController {
 
             log.debug("Saving asset: {}", temp);
             assetService.save(temp);
-            portfolioService.save(userPortfolio);
 
-            RiskMetric tempRM = riskMetricService.findByPortfolio(userPortfolio);
-            tempRM = calculateRiskMetrics(userPortfolio);
-            riskMetricService.save(tempRM);
 
             log.info("Successfully added new asset: {} ({}) for user: {}", stockName, symbol, user.getId());
             redirectAttributes.addFlashAttribute("successMessage", "Asset added successfully!");
@@ -258,14 +254,7 @@ public class MainController {
         try {
             Asset asset = assetService.findById(assetId); // Find asset by ID
             asset.setQuantity(quantity); // Update quantity
-
-            Portfolio portfolio = asset.getPortfolio();
-            RiskMetric temp = riskMetricService.findByPortfolio(portfolio);
-            temp = calculateRiskMetrics(portfolio);
-
             assetService.save(asset); // Save changes
-            portfolioService.save(portfolio);
-            riskMetricService.save(temp);
 
             redirectAttributes.addFlashAttribute("successMessage", "Asset updated successfully!");
         } catch (Exception e) {
@@ -281,14 +270,24 @@ public class MainController {
             assetService.deleteById(assetId); // Delete the asset by ID
             redirectAttributes.addFlashAttribute("successMessage", "Asset deleted successfully!");
 
-            RiskMetric temp = riskMetricService.findByPortfolio(asset.getPortfolio());
-            temp = calculateRiskMetrics(asset.getPortfolio());
-            riskMetricService.save(temp);
-
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error deleting asset: " + e.getMessage());
         }
         return "redirect:/home";
+    }
+
+    @GetMapping("/home/riskmetrics")
+    public String getRiskMetrics(RedirectAttributes redirectAttributes) {
+
+        User user = getCurrentUser();
+        Portfolio portfolio = portfolioService.findByUser(user);
+
+        RiskMetric riskMetric = riskMetricService.findByPortfolio(portfolio);
+        riskMetric = calculateRiskMetrics(portfolio);
+        redirectAttributes.addFlashAttribute("riskMetric", riskMetric);
+
+        return "redirect:/home";
+
     }
 
 
@@ -307,9 +306,6 @@ public class MainController {
 
         RiskMetric temp = new RiskMetric();
 
-        if(temp.getPortfolio() == null) {
-            temp.setPortfolio(portfolio);
-        }
 
         List <Double> investmentReturns = riskMetricHelper.calculateInvestmentReturns(portfolio, tradingDays);
         double riskFreeRate = riskMetricHelper.getRiskFreeRate("daily", "1year");
@@ -323,8 +319,8 @@ public class MainController {
         temp.setSharpeRatio(riskMetricService.calculateSharpeRatio(investmentReturns, riskFreeRate));
         temp.setBeta(riskMetricService.calculateBeta(investmentReturns, marketReturns));
         temp.setAlpha(riskMetricService.calculateAlpha(portfolioReturn, marketReturn, riskFreeRate, temp.getBeta()));
-        temp.setMdd(riskMetricService.calculateMaximumDrawdown(riskMetricHelper.calculatePortfolioValues(portfolio, 60)));
-        temp.setVar(riskMetricService.calculateValueAtRisk(riskMetricHelper.calculateMeanReturn(portfolio), riskMetricHelper.calculatePortfolioVolatilityWithCorrelation(portfolio, 60), riskMetricHelper.getZScoreFromConfidenceLevel()));
+        temp.setMdd(riskMetricService.calculateMaximumDrawdown(riskMetricHelper.calculatePortfolioValues(portfolio, tradingDays)));
+        temp.setVar(riskMetricService.calculateValueAtRisk(riskMetricHelper.calculateMeanReturn(portfolio), riskMetricHelper.calculatePortfolioVolatilityWithCorrelation(portfolio, tradingDays), riskMetricHelper.getZScoreFromConfidenceLevel()));
 
         return temp;
     }
