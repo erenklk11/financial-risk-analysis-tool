@@ -41,6 +41,8 @@ public class MainController {
     @Value("${alphavantage.api.key}")
     private String STOCK_APIKEY;
 
+    private int tradingDays = 252;
+
     private final AssetService assetService;
     private final UserService userService;
     private final PortfolioService portfolioService;
@@ -82,12 +84,6 @@ public class MainController {
                         .map(asset -> (asset.getCurrentPrice() - asset.getPurchasePrice()) / asset.getPurchasePrice() * 100)
                         .collect(Collectors.toList());
 
-                for(Asset temp : assets){
-                    assetService.save(temp);
-                }
-                riskMetricService.save(riskMetric);
-                portfolioService.save(portfolio);
-
             }
         } catch (RuntimeException e) {
             // Log error
@@ -119,7 +115,11 @@ public class MainController {
         portfolio.setName(name);
         portfolio.setUser(user);
 
+        RiskMetric riskMetric = new RiskMetric();
+        riskMetric.setPortfolio(portfolio);
+
         portfolioService.save(portfolio);
+        riskMetricService.save(riskMetric);
 
         // Redirect to home page to see the new portfolio
         return "redirect:/home";
@@ -233,11 +233,11 @@ public class MainController {
 
             log.debug("Saving asset: {}", temp);
             assetService.save(temp);
-
-            //RiskMetric tempRM = calculateRiskMetrics(userPortfolio);
-
             portfolioService.save(userPortfolio);
-            //riskMetricService.save(tempRM);
+
+            RiskMetric tempRM = riskMetricService.findByPortfolio(userPortfolio);
+            tempRM = calculateRiskMetrics(userPortfolio);
+            riskMetricService.save(tempRM);
 
             log.info("Successfully added new asset: {} ({}) for user: {}", stockName, symbol, user.getId());
             redirectAttributes.addFlashAttribute("successMessage", "Asset added successfully!");
@@ -260,11 +260,12 @@ public class MainController {
             asset.setQuantity(quantity); // Update quantity
 
             Portfolio portfolio = asset.getPortfolio();
-            RiskMetric temp = calculateRiskMetrics(portfolio);
+            RiskMetric temp = riskMetricService.findByPortfolio(portfolio);
+            temp = calculateRiskMetrics(portfolio);
 
+            assetService.save(asset); // Save changes
             portfolioService.save(portfolio);
             riskMetricService.save(temp);
-            assetService.save(asset); // Save changes
 
             redirectAttributes.addFlashAttribute("successMessage", "Asset updated successfully!");
         } catch (Exception e) {
@@ -276,8 +277,14 @@ public class MainController {
     @PostMapping("/home/assets/delete")
     public String deleteAsset(@RequestParam("id") Long assetId, RedirectAttributes redirectAttributes) {
         try {
+            Asset asset = assetService.findById(assetId); // Find asset by ID
             assetService.deleteById(assetId); // Delete the asset by ID
             redirectAttributes.addFlashAttribute("successMessage", "Asset deleted successfully!");
+
+            RiskMetric temp = riskMetricService.findByPortfolio(asset.getPortfolio());
+            temp = calculateRiskMetrics(asset.getPortfolio());
+            riskMetricService.save(temp);
+
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error deleting asset: " + e.getMessage());
         }
@@ -300,11 +307,15 @@ public class MainController {
 
         RiskMetric temp = new RiskMetric();
 
-        List <Double> investmentReturns = riskMetricHelper.calculateInvestmentReturns(portfolio, 60);
-        double riskFreeRate = riskMetricHelper.getRiskFreeRate("monthly", "5year");
-        List <Double> marketReturns = riskMetricHelper.calculateMarketReturns("SPY", 60);
-        double portfolioReturn = riskMetricHelper.calculatePortfolioReturn(portfolio, 60);
-        double marketReturn = riskMetricHelper.calculateMarketReturn("SPY", 60);
+        if(temp.getPortfolio() == null) {
+            temp.setPortfolio(portfolio);
+        }
+
+        List <Double> investmentReturns = riskMetricHelper.calculateInvestmentReturns(portfolio, tradingDays);
+        double riskFreeRate = riskMetricHelper.getRiskFreeRate("daily", "1year");
+        List <Double> marketReturns = riskMetricHelper.calculateMarketReturns("SPY", tradingDays);
+        double portfolioReturn = riskMetricHelper.calculatePortfolioReturn(portfolio, tradingDays);
+        double marketReturn = riskMetricHelper.calculateMarketReturn("SPY", tradingDays);
 
 
         temp.setPortfolio(portfolio);

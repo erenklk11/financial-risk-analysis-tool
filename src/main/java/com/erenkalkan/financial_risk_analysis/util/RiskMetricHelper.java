@@ -57,14 +57,14 @@ public class RiskMetricHelper {
 
         for (Asset asset : assets) {
             try {
-                // Fetch daily prices for the last 30 days
+                // Fetch daily prices for the last 30 days. HAS BEEN TESTED. WORKS FINE!
                 List<Double> dailyPrices = assetService.fetchPrices(asset, days);
 
                 // Calculate daily returns for the last 30 days (excluding the first day)
                 List<Double> dailyReturns = new ArrayList<>();
                 for (int i = 1; i < dailyPrices.size(); i++) {
-                    double dailyReturn = (dailyPrices.get(i) - dailyPrices.get(i - 1)) / dailyPrices.get(i - 1);
-                    dailyReturns.add(dailyReturn);
+                    double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
+                    dailyReturns.add(logReturn);
                 }
 
                 // Calculate the average of daily returns for the asset
@@ -146,8 +146,8 @@ public class RiskMetricHelper {
 
             // Calculate daily returns for the last 30 days (excluding the first day)
             for (int i = 1; i < dailyPrices.size(); i++) {
-                double dailyReturn = (dailyPrices.get(i) - dailyPrices.get(i - 1)) / dailyPrices.get(i - 1);
-                marketReturns.add(dailyReturn);
+                double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
+                marketReturns.add(logReturn);
             }
 
         } catch (Exception e) {

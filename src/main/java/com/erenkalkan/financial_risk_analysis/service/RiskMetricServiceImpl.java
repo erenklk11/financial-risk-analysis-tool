@@ -52,7 +52,10 @@ public class RiskMetricServiceImpl implements RiskMetricService {
                 .average()
                 .orElse(0.0);
 
-        return Math.sqrt(variance);
+        // Calculate annualized volatility
+        // Assuming 252 trading days per year for daily returns
+        // Multiply by 100 to express as percentage
+        return Math.sqrt(variance) * Math.sqrt(252) * 100;
     }
 
     /**
@@ -67,10 +70,21 @@ public class RiskMetricServiceImpl implements RiskMetricService {
             throw new IllegalArgumentException("Returns list cannot be null or empty");
         }
 
-        double meanReturn = investmentReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-        double stdDev = calculateVolatility(investmentReturns);
+        // Convert risk-free rate from percentage to decimal
+        double dailyRiskFreeRate = riskFreeRate / 100;
 
-        return (meanReturn - riskFreeRate) / stdDev;
+        double meanReturn = investmentReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        // Annualize the mean return (assuming daily returns)
+        double annualizedReturn = meanReturn * 252;
+
+        double volatility = calculateVolatility(investmentReturns);
+        // Convert volatility back to decimal form since it's in percentage
+        volatility = volatility / 100;
+
+        // Annualize the daily risk-free rate
+        double annualizedRiskFreeRate = dailyRiskFreeRate * 252;
+
+        return (annualizedReturn - annualizedRiskFreeRate) / volatility;
     }
 
     /**
@@ -125,7 +139,12 @@ public class RiskMetricServiceImpl implements RiskMetricService {
      */
     @Override
     public double calculateAlpha(double portfolioReturn, double marketReturn, double riskFreeRate, double beta) {
-        return portfolioReturn - (riskFreeRate + beta * (marketReturn - riskFreeRate));
+
+        double annualizedPortfolioReturn = portfolioReturn * 252;
+        double annualizedMarketReturn = marketReturn * 252;
+        double annualizedRiskFreeRate = riskFreeRate * 252;  // Assuming daily risk-free rate
+
+        return annualizedPortfolioReturn - (annualizedRiskFreeRate + beta * (annualizedMarketReturn - annualizedRiskFreeRate));
     }
 
     /**
