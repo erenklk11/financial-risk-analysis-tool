@@ -66,12 +66,12 @@ public class LoginController {
             User existingUser = userService.findByUsername(user.getUsername());
             User existingEmail = userService.findByEmail(user.getEmail());
 
-            if (existingUser == null) {
+            if (existingUser != null) {
                 model.addAttribute("error", "Username is already taken. Please choose another.");
                 return "sign-up";
             }
 
-            if (existingEmail == null) {
+            if (existingEmail != null) {
                 model.addAttribute("error", "Email is already in use. Please use another.");
                 return "sign-up";
             }

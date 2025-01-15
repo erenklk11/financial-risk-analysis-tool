@@ -148,16 +148,19 @@
     </div>
 
       <!-- Display risk metric if available -->
-      <div th:if="${riskMetric.var != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-        <h2>Risk Metrics</h2>
-        <p><strong>Volatility:</strong> <span th:text="${riskMetric.volatility}">0</span></p>
-        <p><strong>Sharpe Ratio:</strong> <span th:text="${riskMetric.sharpeRatio}">0</span></p>
-        <p><strong>Beta:</strong> <span th:text="${riskMetric.beta}">0</span></p>
-        <p><strong>Alpha:</strong> <span th:text="${riskMetric.alpha}">0</span></p>
-        <p><strong>Maximum Drawdown:</strong> <span th:text="${riskMetric.mdd}">0</span></p>
-        <p><strong>Value at Risk:</strong> <span th:text="${riskMetric.var}">0</span></p>
-
+      <div th:if="${riskMetric != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+        <div th:if="${riskMetric.var != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+          <h2>Risk Metrics</h2>
+          <p><strong>Volatility:</strong> <span th:text="${riskMetric.volatility}">0</span></p>
+          <p><strong>Sharpe Ratio:</strong> <span th:text="${riskMetric.sharpeRatio}">0</span></p>
+          <p><strong>Beta:</strong> <span th:text="${riskMetric.beta}">0</span></p>
+          <p><strong>Alpha:</strong> <span th:text="${riskMetric.alpha}">0</span></p>
+          <p><strong>Maximum Drawdown:</strong> <span th:text="${riskMetric.mdd}">0</span></p>
+          <p><strong>Value at Risk:</strong> <span th:text="${riskMetric.var}">0</span></p>
+        </div>
       </div>
+
+
     </div>
   </div>
 

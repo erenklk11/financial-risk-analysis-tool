@@ -131,7 +131,8 @@ public class MainController {
     public String addAsset(@RequestParam("symbol") String symbol,
                            @RequestParam("purchaseDate") String purchaseDate,
                            @RequestParam("quantity") int quantity,
-                           RedirectAttributes redirectAttributes) {
+                           RedirectAttributes redirectAttributes)
+    {
         try {
             log.debug("Starting asset addition process for symbol: {}", symbol);
 
