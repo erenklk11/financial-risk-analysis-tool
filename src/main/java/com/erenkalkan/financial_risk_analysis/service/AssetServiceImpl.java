@@ -78,8 +78,6 @@ public class AssetServiceImpl implements  AssetService {
                 throw new IllegalStateException("API URL is null. Check your application.properties configuration.");
             }
 
-            String purchaseDate = asset.getPurchaseDate().toString();
-            String currentDate = LocalDate.now().toString();
 
             log.debug("Fetching prices for symbol: {} with lastXDays: {}", asset.getSymbol(), lastXDays);
             log.debug("Using API URL: {}", API_URL);
@@ -168,6 +166,8 @@ public class AssetServiceImpl implements  AssetService {
             }
 
             if (lastXDays <= 1) {
+                String purchaseDate = asset.getPurchaseDate().toString();
+                String currentDate = LocalDate.now().toString();
                 // Handle both current and historical single-day price fetching
                 List<String> datesToCheck = Arrays.asList(lastXDays == 0 ? currentDate : purchaseDate);
 

@@ -140,10 +140,10 @@ public class RiskMetricHelper {
         temp.setSymbol(marketSymbol);
 
         try {
-            // Fetch daily prices for the last 30 days
+            // Fetch daily prices for the last X days
             List<Double> dailyPrices = assetService.fetchPrices(temp, days);
 
-            // Calculate daily returns for the last 30 days (excluding the first day)
+            // Calculate daily returns for the last X days (excluding the first day)
             for (int i = 1; i < dailyPrices.size(); i++) {
                 double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
                 marketReturns.add(logReturn);
