@@ -46,18 +46,18 @@ public class RiskMetricHelper {
      *         average return for an asset.
      * @throws RuntimeException If fetching historical prices for an asset fails.
      */
-    public List<Double> calculateInvestmentReturns(Portfolio portfolio, int days) {
+    public List<Double> calculateInvestmentReturns(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices, int days) {
         List<Double> investmentReturns = new ArrayList<>();
 
         List<Asset> assets = portfolio.getAssets();
 
-        // Calculate the target historical date (30 days ago)
+        // Calculate the target historical date
         LocalDate historicalDate = LocalDate.now().minusDays(days);
 
         for (Asset asset : assets) {
             try {
-                // Fetch daily prices for the last 30 days. HAS BEEN TESTED. WORKS FINE!
-                List<Double> dailyPrices = assetService.fetchPrices(asset, days);
+                // Fetch daily prices for the last X days. HAS BEEN TESTED. WORKS FINE!
+                List<Double> dailyPrices = historicalPrices.get(asset);
 
                 // Calculate daily returns for the last 30 days (excluding the first day)
                 List<Double> dailyReturns = new ArrayList<>();
@@ -111,11 +111,12 @@ public class RiskMetricHelper {
                 JSONArray dataArray = jsonObject.getJSONArray("data");
                 if (!dataArray.isEmpty()) {
                     JSONObject latestEntry = dataArray.getJSONObject(0);
+                    System.out.println("Risk free rate found: " + latestEntry.getDouble("value"));
                     return latestEntry.getDouble("value");
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Risk Free rate error" + e.getMessage());;
         }
 
         return 0.0;
@@ -127,12 +128,11 @@ public class RiskMetricHelper {
      * The market return is calculated as the percentage change in price between consecutive days.
      *
      * @param marketSymbol The symbol of the market (e.g., "SPY" for S&P 500) for which the returns are calculated.
-     * @param days The number of days over which the market returns should be calculated (e.g., 30 for the last 30 days).
      * @return A list of daily market returns, where each element represents the return for a particular day
      *         compared to the previous day.
      * @throws RuntimeException If fetching historical prices for the market fails.
      */
-    public List<Double> calculateMarketReturns(String marketSymbol, int days) {
+    public List<Double> calculateMarketReturns(String marketSymbol, Map<Asset, List<Double>> historicalPrices) {
 
         List<Double> marketReturns = new ArrayList<>();
 
@@ -141,7 +141,7 @@ public class RiskMetricHelper {
 
         try {
             // Fetch daily prices for the last X days
-            List<Double> dailyPrices = assetService.fetchPrices(temp, days);
+            List<Double> dailyPrices = historicalPrices.get(temp);
 
             // Calculate daily returns for the last X days (excluding the first day)
             for (int i = 1; i < dailyPrices.size(); i++) {
@@ -158,21 +158,9 @@ public class RiskMetricHelper {
     }
 
 
-    /**
-     * Calculates the average portfolio return over a specified number of days.
-     * The portfolio return is calculated by first determining the daily returns for each asset
-     * in the portfolio and then calculating the average of those daily returns.
-     *
-     * @param portfolio The portfolio whose return is to be calculated. It contains a list of assets.
-     * @param days The number of days over which the portfolio return should be calculated (e.g., 30 for the last 30 days).
-     * @return The average portfolio return over the specified number of days. The return is calculated
-     *         as the average of the daily returns for all assets in the portfolio.
-     *         If no returns are available, it returns 0.0.
-     * @throws IllegalArgumentException If the portfolio is null or if the number of days is invalid.
-     */
-    public double calculatePortfolioReturn(Portfolio portfolio, int days) {
+    public double calculatePortfolioReturn(List<Double> returns) {
 
-        List<Double> dailyReturns = calculateInvestmentReturns(portfolio, days);
+        List<Double> dailyReturns = returns;
 
         // Calculate the average daily return
         return dailyReturns.stream()
@@ -200,20 +188,11 @@ public class RiskMetricHelper {
     }
 
 
-    /**
-     * Calculates the average market return over a specified number of days for a given market symbol.
-     * It fetches the daily returns for the market and calculates the average of these returns.
-     *
-     * @param marketSymbol The symbol of the market (e.g., "SPY" for the S&P 500) whose returns are to be calculated.
-     * @param days The number of days over which to calculate the market return.
-     *              The method will fetch the daily returns for the specified number of days and calculate the average.
-     * @return The average daily return of the market over the specified number of days.
-     *         If no market returns are available, it returns 0.0.
-     */
-    public double calculateMarketReturn(String marketSymbol, int days) {
+
+    public double calculateMarketReturn(List<Double> returns) {
 
         // Fetch daily returns for the market
-        List<Double> dailyReturns = calculateMarketReturns(marketSymbol, days);
+        List<Double> dailyReturns = returns;
 
         // Calculate the average daily return
         return dailyReturns.stream()
@@ -236,7 +215,7 @@ public class RiskMetricHelper {
      * @return The weighted mean return of the portfolio based on 30-day and 60-day returns for each asset.
      *         If there is insufficient data for any asset, it will be skipped.
      */
-    public double calculateMeanReturn(Portfolio portfolio) {
+    public double calculateMeanReturn(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices) {
         List<Asset> assets = portfolio.getAssets();
 
         // Calculate portfolio weights
@@ -245,13 +224,6 @@ public class RiskMetricHelper {
         for (Asset asset : assets) {
             double weight = (asset.getQuantity() * asset.getCurrentPrice()) / totalValue;
             weights.put(asset, weight);
-        }
-
-        // Fetch 252 days of data for each asset
-        Map<Asset, List<Double>> historicalPrices = new HashMap<>();
-        for (Asset asset : assets) {
-            List<Double> prices = assetService.fetchPrices(asset, 252);
-            historicalPrices.put(asset, prices);
         }
 
         // Calculate daily returns and weighted mean return
@@ -290,11 +262,10 @@ public class RiskMetricHelper {
      *
      * @param portfolio The portfolio for which the volatility is to be calculated. It contains a list of assets
      *                  with their quantities and prices.
-     * @param days The number of days of historical price data to use when calculating the returns and volatility.
      * @return The volatility (standard deviation) of the portfolio, calculated based on historical returns of its assets.
      * @throws IllegalArgumentException if the portfolio contains no assets.
      */
-    public double calculatePortfolioVolatilityWithCorrelation(Portfolio portfolio, int days) {
+    public double calculatePortfolioVolatilityWithCorrelation(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices) {
         List<Asset> assets = portfolio.getAssets();
         int numAssets = assets.size();
 
@@ -305,7 +276,7 @@ public class RiskMetricHelper {
         // Step 1: Fetch historical returns for all assets
         Map<Asset, List<Double>> assetReturns = new HashMap<>();
         for (Asset asset : assets) {
-            List<Double> dailyPrices = assetService.fetchPrices(asset, days);
+            List<Double> dailyPrices = historicalPrices.get(asset);
             List<Double> dailyReturns = new ArrayList<>();
             for (int i = 1; i < dailyPrices.size(); i++) {
                 double dailyReturn = (dailyPrices.get(i) - dailyPrices.get(i - 1)) / dailyPrices.get(i - 1);
@@ -419,7 +390,7 @@ public class RiskMetricHelper {
      * @return A list of portfolio values for each day over the specified period.
      * @throws IllegalArgumentException if the portfolio is empty or contains assets with insufficient data.
      */
-    public List<Double> calculatePortfolioValues(Portfolio portfolio, int days) {
+    public List<Double> calculatePortfolioValues(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices, int days) {
         List<Double> portfolioValues = new ArrayList<>();
 
         // Get current quantities of each asset
@@ -428,14 +399,6 @@ public class RiskMetricHelper {
             quantities.put(asset, asset.getQuantity());
         }
 
-        // Map to store daily prices for each asset
-        Map<Asset, List<Double>> assetPrices = new HashMap<>();
-
-        // Fetch historical prices
-        for (Asset asset : portfolio.getAssets()) {
-            List<Double> dailyPrices = assetService.fetchPrices(asset, days);
-            assetPrices.put(asset, dailyPrices);
-        }
 
         // Calculate portfolio value for each day
         for (int i = 0; i < days; i++) {
@@ -443,7 +406,7 @@ public class RiskMetricHelper {
 
             // Sum up the value of each asset using fixed quantities
             for (Asset asset : portfolio.getAssets()) {
-                List<Double> prices = assetPrices.get(asset);
+                List<Double> prices = historicalPrices.get(asset);
                 if (prices != null && prices.size() > i) {
                     double price = prices.get(i);
                     double quantity = quantities.get(asset);

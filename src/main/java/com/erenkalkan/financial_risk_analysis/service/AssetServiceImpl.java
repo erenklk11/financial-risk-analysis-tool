@@ -169,9 +169,8 @@ public class AssetServiceImpl implements  AssetService {
                 String purchaseDate = asset.getPurchaseDate().toString();
                 String currentDate = LocalDate.now().toString();
                 // Handle both current and historical single-day price fetching
-                List<String> datesToCheck = Arrays.asList(lastXDays == 0 ? currentDate : purchaseDate);
+                String date = lastXDays == 0 ? currentDate : purchaseDate;
 
-                for (String date : datesToCheck) {
                     boolean dataFound = false;
                     LocalDate checkDate = LocalDate.parse(date);
 
@@ -193,7 +192,7 @@ public class AssetServiceImpl implements  AssetService {
                         log.error("No price data found within 5 days of {}", date);
                         throw new RuntimeException("No price data found within 5 days of " + date);
                     }
-                }
+
             } else {
                 // Fetch multiple days of prices
                 LocalDate targetDate = LocalDate.now();

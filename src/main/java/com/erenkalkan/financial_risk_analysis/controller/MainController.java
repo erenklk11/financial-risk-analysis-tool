@@ -19,12 +19,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -71,7 +74,7 @@ public class MainController {
                 for(Asset temp : assets){
                     temp.setCurrentPrice(assetService.fetchPrices(temp).getFirst());
                 }
-                portfolio.setTotalValue(riskMetricHelper.calculateTotalPortfolioValue(portfolio));
+                portfolio.setTotalValue(new BigDecimal(riskMetricHelper.calculateTotalPortfolioValue(portfolio)).setScale(3, RoundingMode.HALF_UP).doubleValue());
                 riskMetric = riskMetricService.findByPortfolio(portfolio);
 
                 assetNames = assets.stream()
@@ -307,12 +310,18 @@ public class MainController {
 
         RiskMetric temp = new RiskMetric();
 
+        Map<Asset, List<Double>> historicalPrices = new HashMap<>();
+        for (Asset asset : portfolio.getAssets()) {
+            List<Double> prices = assetService.fetchPrices(asset, tradingDays);
+            historicalPrices.put(asset, prices);
+        }
 
-        List <Double> investmentReturns = riskMetricHelper.calculateInvestmentReturns(portfolio, tradingDays);
+
+        List <Double> investmentReturns = riskMetricHelper.calculateInvestmentReturns(portfolio, historicalPrices, tradingDays);
         double riskFreeRate = riskMetricHelper.getRiskFreeRate("daily", "1year");
-        List <Double> marketReturns = riskMetricHelper.calculateMarketReturns("SPY", tradingDays);
-        double portfolioReturn = riskMetricHelper.calculatePortfolioReturn(portfolio, tradingDays);
-        double marketReturn = riskMetricHelper.calculateMarketReturn("SPY", tradingDays);
+        List <Double> marketReturns = riskMetricHelper.calculateMarketReturns("SPY", historicalPrices);
+        double portfolioReturn = riskMetricHelper.calculatePortfolioReturn(investmentReturns);
+        double marketReturn = riskMetricHelper.calculateMarketReturn(marketReturns);
 
 
         temp.setPortfolio(portfolio);
@@ -320,8 +329,8 @@ public class MainController {
         temp.setSharpeRatio(riskMetricService.calculateSharpeRatio(investmentReturns, riskFreeRate));
         temp.setBeta(riskMetricService.calculateBeta(investmentReturns, marketReturns));
         temp.setAlpha(riskMetricService.calculateAlpha(portfolioReturn, marketReturn, riskFreeRate, temp.getBeta()));
-        temp.setMdd(riskMetricService.calculateMaximumDrawdown(riskMetricHelper.calculatePortfolioValues(portfolio, tradingDays)));
-        temp.setVar(riskMetricService.calculateValueAtRisk(riskMetricHelper.calculateMeanReturn(portfolio), riskMetricHelper.calculatePortfolioVolatilityWithCorrelation(portfolio, tradingDays), riskMetricHelper.getZScoreFromConfidenceLevel()));
+        temp.setMdd(riskMetricService.calculateMaximumDrawdown(riskMetricHelper.calculatePortfolioValues(portfolio, historicalPrices, tradingDays)));
+        temp.setVar(riskMetricService.calculateValueAtRisk(riskMetricHelper.calculateMeanReturn(portfolio, historicalPrices), riskMetricHelper.calculatePortfolioVolatilityWithCorrelation(portfolio, historicalPrices), riskMetricHelper.getZScoreFromConfidenceLevel()));
 
         return temp;
     }
