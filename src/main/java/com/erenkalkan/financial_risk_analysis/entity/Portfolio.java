@@ -34,4 +34,16 @@ public class Portfolio {
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Asset> assets;
+
+    @Override
+    public String toString() {
+        return "Portfolio{" +
+                "id=" + id +
+                ", user=" + user +
+                ", name='" + name + '\'' +
+                ", totalValue=" + totalValue +
+                ", createdAt=" + createdAt +
+                ", assets=" + assets.parallelStream().map(Asset::getName) +
+                '}';
+    }
 }

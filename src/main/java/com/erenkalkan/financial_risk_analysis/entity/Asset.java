@@ -46,4 +46,20 @@ public class Asset {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Override
+    public String toString() {
+        return "Asset{" +
+                "id=" + id +
+                ", portfolio=" + portfolio.getId() +
+                ", name='" + name + '\'' +
+                ", symbol='" + symbol + '\'' +
+                ", countryCode='" + countryCode + '\'' +
+                ", quantity=" + quantity +
+                ", purchaseDate=" + purchaseDate +
+                ", purchasePrice=" + purchasePrice +
+                ", currentPrice=" + currentPrice +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }

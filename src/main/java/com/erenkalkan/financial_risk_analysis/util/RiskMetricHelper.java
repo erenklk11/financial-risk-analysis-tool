@@ -25,10 +25,9 @@ import java.util.Map;
 public class RiskMetricHelper {
 
     @Value("${alphavantage.api.url}")
-    private static String RISK_FREE_RATE_API_URL;
+    private String RISK_FREE_RATE_API_URL;
     @Value("${alphavantage.api.key}")
-    private static String RISK_FREE_RATE_API_KEY;
-    private static final String MAKRET_SYMBOL = "SPY";
+    private String RISK_FREE_RATE_API_KEY;
     @Value("${risk.confidenceLevel}")
     private double confidenceLevel;
 
@@ -50,9 +49,6 @@ public class RiskMetricHelper {
         List<Double> investmentReturns = new ArrayList<>();
 
         List<Asset> assets = portfolio.getAssets();
-
-        // Calculate the target historical date
-        LocalDate historicalDate = LocalDate.now().minusDays(days);
 
         for (Asset asset : assets) {
             try {
@@ -132,16 +128,13 @@ public class RiskMetricHelper {
      *         compared to the previous day.
      * @throws RuntimeException If fetching historical prices for the market fails.
      */
-    public List<Double> calculateMarketReturns(String marketSymbol, Map<Asset, List<Double>> historicalPrices) {
+    public List<Double> calculateMarketReturns(String marketSymbol, List<Double> historicalPrices) {
 
         List<Double> marketReturns = new ArrayList<>();
 
-        Asset temp = new Asset();
-        temp.setSymbol(marketSymbol);
-
         try {
             // Fetch daily prices for the last X days
-            List<Double> dailyPrices = historicalPrices.get(temp);
+            List<Double> dailyPrices = historicalPrices;
 
             // Calculate daily returns for the last X days (excluding the first day)
             for (int i = 1; i < dailyPrices.size(); i++) {
@@ -151,7 +144,7 @@ public class RiskMetricHelper {
 
         } catch (Exception e) {
             // Log the error and skip the asset
-            System.err.println("Error fetching price for asset " + temp.getSymbol() + ": " + e.getMessage());
+            System.err.println("Error fetching price for SPY "  + ": " + e.getMessage());
         }
 
         return marketReturns;
