@@ -40,12 +40,11 @@ public class RiskMetricHelper {
      * The investment return is calculated as the average of daily returns over the specified period, excluding the first day.
      *
      * @param portfolio The portfolio containing the assets for which the returns are calculated.
-     * @param days The number of days over which the returns should be calculated (e.g., 30 for the last 30 days).
      * @return A list of average investment returns for each asset in the portfolio, where each element corresponds to the
      *         average return for an asset.
      * @throws RuntimeException If fetching historical prices for an asset fails.
      */
-    public List<Double> calculateInvestmentReturns(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices, int days) {
+    public List<Double> calculateInvestmentReturns(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices) {
         List<Double> investmentReturns = new ArrayList<>();
 
         List<Asset> assets = portfolio.getAssets();
@@ -123,12 +122,11 @@ public class RiskMetricHelper {
      * Calculates the daily market returns for a given market symbol over the specified number of days.
      * The market return is calculated as the percentage change in price between consecutive days.
      *
-     * @param marketSymbol The symbol of the market (e.g., "SPY" for S&P 500) for which the returns are calculated.
      * @return A list of daily market returns, where each element represents the return for a particular day
      *         compared to the previous day.
      * @throws RuntimeException If fetching historical prices for the market fails.
      */
-    public List<Double> calculateMarketReturns(String marketSymbol, List<Double> historicalPrices) {
+    public List<Double> calculateMarketReturns(List<Double> historicalPrices) {
 
         List<Double> marketReturns = new ArrayList<>();
 
