@@ -81,10 +81,8 @@ public class RiskMetricServiceImpl implements RiskMetricService {
         // Convert volatility back to decimal form since it's in percentage
         volatility = volatility / 100;
 
-        // Annualize the daily risk-free rate
-        double annualizedRiskFreeRate = dailyRiskFreeRate * 252;
 
-        return (annualizedReturn - annualizedRiskFreeRate) / volatility;
+        return (annualizedReturn - riskFreeRate) / volatility;
     }
 
     /**
