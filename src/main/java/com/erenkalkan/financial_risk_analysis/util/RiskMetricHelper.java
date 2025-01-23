@@ -51,10 +51,8 @@ public class RiskMetricHelper {
 
         for (Asset asset : assets) {
             try {
-                // Fetch daily prices for the last X days. HAS BEEN TESTED. WORKS FINE!
                 List<Double> dailyPrices = historicalPrices.get(asset);
 
-                // Calculate daily returns for the last 30 days (excluding the first day)
                 List<Double> dailyReturns = new ArrayList<>();
                 for (int i = 1; i < dailyPrices.size(); i++) {
                     double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
@@ -74,6 +72,27 @@ public class RiskMetricHelper {
         return investmentReturns;
     }
 
+    public List<Double> calculateAssetReturns(Asset asset, Map<Asset, List<Double>> historicalPrices) {
+
+        List<Double> assetReturns = new ArrayList<>();
+
+        try {
+            // Fetch daily prices for the last X days
+            List<Double> dailyPrices = historicalPrices.get(asset);
+
+            // Calculate daily returns for the last X days (excluding the first day)
+            for (int i = 1; i < dailyPrices.size(); i++) {
+                double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
+                assetReturns.add(logReturn);
+            }
+
+        } catch (Exception e) {
+            // Log the error and skip the asset
+            System.err.println("Error fetching price for asset " + ": " + e.getMessage());
+        }
+
+        return assetReturns;
+    }
 
     /**
      * Fetches the risk-free rate based on the given interval and maturity using the Alpha Vantage API.
@@ -256,7 +275,7 @@ public class RiskMetricHelper {
      * @return The volatility (standard deviation) of the portfolio, calculated based on historical returns of its assets.
      * @throws IllegalArgumentException if the portfolio contains no assets.
      */
-    public double calculatePortfolioVolatilityWithCorrelation(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices) {
+    public double calculatePortfolioVolatilityWithCorrelation(Portfolio portfolio, Map<Asset, List<Double>> assetReturns) {
         List<Asset> assets = portfolio.getAssets();
         int numAssets = assets.size();
 
@@ -264,17 +283,6 @@ public class RiskMetricHelper {
             throw new IllegalArgumentException("Portfolio must contain at least one asset.");
         }
 
-        // Step 1: Fetch historical returns for all assets
-        Map<Asset, List<Double>> assetReturns = new HashMap<>();
-        for (Asset asset : assets) {
-            List<Double> dailyPrices = historicalPrices.get(asset);
-            List<Double> dailyReturns = new ArrayList<>();
-            for (int i = 1; i < dailyPrices.size(); i++) {
-                double dailyReturn = (dailyPrices.get(i) - dailyPrices.get(i - 1)) / dailyPrices.get(i - 1);
-                dailyReturns.add(dailyReturn);
-            }
-            assetReturns.put(asset, dailyReturns);
-        }
 
         // Step 2: Calculate asset weights
         double totalValue = calculateTotalPortfolioValue(portfolio);
@@ -345,7 +353,7 @@ public class RiskMetricHelper {
         }
 
         // Step 6: Return the square root of the variance (volatility)
-        return Math.sqrt(portfolioVariance);
+        return Math.sqrt(portfolioVariance)* Math.sqrt(252);
     }
 
 
@@ -410,6 +418,5 @@ public class RiskMetricHelper {
 
         return portfolioValues;
     }
-
 
 }

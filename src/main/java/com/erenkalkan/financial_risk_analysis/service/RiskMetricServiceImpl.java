@@ -1,12 +1,15 @@
 package com.erenkalkan.financial_risk_analysis.service;
 
+import com.erenkalkan.financial_risk_analysis.entity.Asset;
 import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
 import com.erenkalkan.financial_risk_analysis.entity.RiskMetric;
 import com.erenkalkan.financial_risk_analysis.repository.RiskMetricRepository;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -32,31 +35,6 @@ public class RiskMetricServiceImpl implements RiskMetricService {
     }
 
 
-    /**
-     * Calculate the standard deviation of returns.
-     *
-     * @param investmentReturns List of investment returns
-     * @return Standard deviation
-     */
-    @Override
-    public double calculateVolatility(List<Double> investmentReturns) {
-
-        if (investmentReturns == null || investmentReturns.isEmpty()) {
-            throw new IllegalArgumentException("Returns list cannot be null or empty");
-        }
-
-        double mean = investmentReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-
-        double variance = investmentReturns.stream()
-                .mapToDouble(r -> Math.pow(r - mean, 2))
-                .average()
-                .orElse(0.0);
-
-        // Calculate annualized volatility
-        // Assuming 252 trading days per year for daily returns
-        // Multiply by 100 to express as percentage
-        return Math.sqrt(variance) * Math.sqrt(252) * 100;
-    }
 
     /**
      * Calculate Sharpe Ratio.
@@ -64,56 +42,63 @@ public class RiskMetricServiceImpl implements RiskMetricService {
      * @param investmentReturns List of investment investmentReturns
      * @return Sharpe Ratio
      */
-    public double calculateSharpeRatio(List<Double> investmentReturns, double riskFreeRate) {
+    public double calculateSharpeRatio(List<Double> investmentReturns, double riskFreeRate, double portfolioVolatility) {
 
         if (investmentReturns == null || investmentReturns.isEmpty()) {
             throw new IllegalArgumentException("Returns list cannot be null or empty");
         }
 
-        // Convert risk-free rate from percentage to decimal
-        double dailyRiskFreeRate = riskFreeRate / 100;
+        // Convert annual risk-free rate to daily risk-free rate
+        double dailyRiskFreeRate = riskFreeRate / (252*100); // Convert to decimal and daily
 
         double meanReturn = investmentReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-        // Annualize the mean return (assuming daily returns)
-        double annualizedReturn = meanReturn * 252;
 
-        double volatility = calculateVolatility(investmentReturns);
-        // Convert volatility back to decimal form since it's in percentage
-        volatility = volatility / 100;
+        // Convert annual portfolio volatility to daily volatility
+        double dailyPortfolioVolatility = portfolioVolatility / Math.sqrt(252);
 
-
-        return (annualizedReturn - riskFreeRate) / volatility;
+        return (meanReturn - dailyRiskFreeRate) / dailyPortfolioVolatility;
     }
 
     /**
      * Calculate the beta of an investment.
      *
-     * @param investmentReturns List of investment returns
      * @param marketReturns List of market benchmark returns
      * @return Beta
      */
     @Override
-    public double calculateBeta(List<Double> investmentReturns, List<Double> marketReturns) {
-        if (investmentReturns == null || marketReturns == null || investmentReturns.size() != marketReturns.size()) {
+    public double calculatePortfolioBeta(Portfolio portfolio, Map<Asset, List<Double>> assetReturns, List<Double> marketReturns) {
+
+        List<Asset> assets = portfolio.getAssets();
+
+        double portfolioBeta = 0.0;
+
+        for(Asset asset : assets) {
+            double assetBeta = calculateBeta(assetReturns.get(asset), marketReturns);
+            portfolioBeta += asset.getWeight() * assetBeta;
+        }
+
+        return portfolioBeta;
+    }
+
+    private double calculateBeta(List<Double> assetReturns, List<Double> marketReturns) {
+        if (assetReturns == null || marketReturns == null || assetReturns.size() != marketReturns.size()) {
             throw new IllegalArgumentException("Returns lists must be non-null and of the same size");
         }
 
-        // Calculate the means for investment and market returns
-        double investmentMean = investmentReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double assetMean = assetReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
         double marketMean = marketReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
 
-        // Calculate covariance and market variance in a single loop for efficiency
         double covariance = 0.0;
         double marketVariance = 0.0;
-        for (int i = 0; i < investmentReturns.size(); i++) {
-            double investmentDiff = investmentReturns.get(i) - investmentMean;
+        for (int i = 0; i < assetReturns.size(); i++) {
+            double assetDiff = assetReturns.get(i) - assetMean;
             double marketDiff = marketReturns.get(i) - marketMean;
 
-            covariance += investmentDiff * marketDiff;
+            covariance += assetDiff * marketDiff;
             marketVariance += marketDiff * marketDiff;
         }
 
-        covariance /= investmentReturns.size();
+        covariance /= assetReturns.size();
         marketVariance /= marketReturns.size();
 
         // Ensure market variance is not zero

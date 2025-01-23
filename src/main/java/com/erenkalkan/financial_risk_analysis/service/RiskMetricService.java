@@ -1,9 +1,11 @@
 package com.erenkalkan.financial_risk_analysis.service;
 
+import com.erenkalkan.financial_risk_analysis.entity.Asset;
 import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
 import com.erenkalkan.financial_risk_analysis.entity.RiskMetric;
 
 import java.util.List;
+import java.util.Map;
 
 public interface RiskMetricService {
 
@@ -15,11 +17,9 @@ public interface RiskMetricService {
     void deleteById(Long id);
 
 
-    double calculateVolatility(List<Double> investmentReturns);
+    double calculateSharpeRatio(List<Double> investmentReturns, double riskFreeRate, double portfolioVolatility);
 
-    double calculateSharpeRatio(List<Double> investmentReturns, double riskFreeRate);
-
-    double calculateBeta(List<Double> investmentReturns, List<Double> marketReturns);
+    double calculatePortfolioBeta(Portfolio portfolio, Map<Asset, List<Double>> historicalAssetPrices, List<Double> marketReturns);
 
     double calculateAlpha(double portfolioReturn, double marketReturn, double riskFreeRate, double beta);
 

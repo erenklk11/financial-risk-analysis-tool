@@ -73,6 +73,7 @@ public class MainController {
                 assets = assetService.findAll(portfolio);
                 for(Asset temp : assets){
                     temp.setCurrentPrice(assetService.fetchPrices(temp).getFirst());
+                    assetService.save(temp);
                 }
                 portfolio.setTotalValue(new BigDecimal(riskMetricHelper.calculateTotalPortfolioValue(portfolio)).setScale(3, RoundingMode.HALF_UP).doubleValue());
                 riskMetric = riskMetricService.findByPortfolio(portfolio);
@@ -103,6 +104,8 @@ public class MainController {
         model.addAttribute("assetValues", assetValues);
         model.addAttribute("assetReturns", assetReturns);
 
+        portfolioService.save(portfolio);
+        riskMetricService.save(riskMetric);
 
         return "home";
     }
@@ -310,36 +313,47 @@ public class MainController {
 
         RiskMetric temp = new RiskMetric();
 
+
         Map<Asset, List<Double>> historicalAssetPrices = new HashMap<>();
         for (Asset asset : portfolio.getAssets()) {
             List<Double> prices = assetService.fetchPrices(asset, tradingDays);
             historicalAssetPrices.put(asset, prices);
         }
+        System.out.println("Historical Asset Prices: " + historicalAssetPrices);
 
         Asset asset = new Asset();
         asset.setSymbol("SPY");
         List<Double> historicalMarketPrices = assetService.fetchPrices(asset, tradingDays);
+        System.out.println("Historical Market Prices: " + historicalMarketPrices);
+
+        Map<Asset, List<Double>> assetReturns = new HashMap<>();
+        for (Asset asset_ : portfolio.getAssets()) {
+            List<Double> returns = riskMetricHelper.calculateAssetReturns(asset_, historicalAssetPrices);
+            assetReturns.put(asset_, returns);
+        }
+        System.out.println("Asset Returns: " + assetReturns);
 
 
         List <Double> investmentReturns = riskMetricHelper.calculateInvestmentReturns(portfolio, historicalAssetPrices);
+        System.out.println("Investment Returns: " + investmentReturns);
         double riskFreeRate = riskMetricHelper.getRiskFreeRate("daily", "2year");
         List <Double> marketReturns = riskMetricHelper.calculateMarketReturns(historicalMarketPrices);
+        System.out.println("Market Returns: " + marketReturns);
         double portfolioReturn = riskMetricHelper.calculatePortfolioReturn(investmentReturns);
         double marketReturn = riskMetricHelper.calculateMarketReturn(marketReturns);
 
-
         temp.setPortfolio(portfolio);
-        temp.setVolatility(riskMetricService.calculateVolatility(investmentReturns));
-        System.out.println("Volatility: " + temp.getVolatility());
-        temp.setSharpeRatio(riskMetricService.calculateSharpeRatio(investmentReturns, riskFreeRate));
+        temp.setVolatility(riskMetricHelper.calculatePortfolioVolatilityWithCorrelation(portfolio, assetReturns));
+        System.out.println("\nVolatility: " + temp.getVolatility());
+        temp.setSharpeRatio(riskMetricService.calculateSharpeRatio(investmentReturns, riskFreeRate, temp.getVolatility()));
         System.out.println("Sharpe Ratio: " + temp.getSharpeRatio());
-        temp.setBeta(riskMetricService.calculateBeta(investmentReturns, marketReturns));
+        temp.setBeta(riskMetricService.calculatePortfolioBeta(portfolio, assetReturns,marketReturns));
         System.out.println("Beta: " + temp.getBeta());
         temp.setAlpha(riskMetricService.calculateAlpha(portfolioReturn, marketReturn, riskFreeRate, temp.getBeta()));
         System.out.println("Alpha: " + temp.getAlpha());
         temp.setMdd(riskMetricService.calculateMaximumDrawdown(riskMetricHelper.calculatePortfolioValues(portfolio, historicalAssetPrices, tradingDays)));
         System.out.println("MDD: " + temp.getMdd());
-        temp.setVar(riskMetricService.calculateValueAtRisk(riskMetricHelper.calculateMeanReturn(portfolio, historicalAssetPrices), riskMetricHelper.calculatePortfolioVolatilityWithCorrelation(portfolio, historicalAssetPrices), riskMetricHelper.getZScoreFromConfidenceLevel()));
+        temp.setVar(riskMetricService.calculateValueAtRisk(riskMetricHelper.calculateMeanReturn(portfolio, historicalAssetPrices), temp.getVolatility(), riskMetricHelper.getZScoreFromConfidenceLevel()));
         System.out.println("VaR: " + temp.getVar());
 
         return temp;

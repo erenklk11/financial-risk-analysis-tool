@@ -62,4 +62,8 @@ public class Asset {
                 ", createdAt=" + createdAt +
                 '}';
     }
+
+    public double getWeight() {
+        return quantity * currentPrice / portfolio.getTotalValue();
+    }
 }
