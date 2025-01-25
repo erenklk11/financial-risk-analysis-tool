@@ -340,7 +340,9 @@ public class MainController {
         List <Double> marketReturns = riskMetricHelper.calculateMarketReturns(historicalMarketPrices);
         System.out.println("Market Returns: " + marketReturns);
         double portfolioReturn = riskMetricHelper.calculatePortfolioReturn(investmentReturns);
+        System.out.println("Portfolio Return: " + portfolioReturn);
         double marketReturn = riskMetricHelper.calculateMarketReturn(marketReturns);
+        System.out.println("Market Return: " + marketReturn);
 
         temp.setPortfolio(portfolio);
         temp.setVolatility(riskMetricHelper.calculatePortfolioVolatilityWithCorrelation(portfolio, assetReturns));

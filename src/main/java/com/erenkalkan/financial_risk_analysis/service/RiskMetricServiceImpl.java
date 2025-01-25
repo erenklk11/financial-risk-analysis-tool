@@ -125,9 +125,8 @@ public class RiskMetricServiceImpl implements RiskMetricService {
 
         double annualizedPortfolioReturn = portfolioReturn * 252;
         double annualizedMarketReturn = marketReturn * 252;
-        double annualizedRiskFreeRate = riskFreeRate * 252;  // Assuming daily risk-free rate
 
-        return annualizedPortfolioReturn - (annualizedRiskFreeRate + beta * (annualizedMarketReturn - annualizedRiskFreeRate));
+        return annualizedPortfolioReturn - (riskFreeRate + beta * (annualizedMarketReturn - riskFreeRate));
     }
 
     /**
@@ -142,9 +141,8 @@ public class RiskMetricServiceImpl implements RiskMetricService {
     public double calculateValueAtRisk(double meanReturn, double portfolioVolatilityWithCorrelation, double zScore) {
         // Annualize the mean return and volatility
         double annualizedMeanReturn = meanReturn * 252;
-        double annualizedVolatility = portfolioVolatilityWithCorrelation * Math.sqrt(252);
 
-        return annualizedMeanReturn - zScore * annualizedVolatility;
+        return annualizedMeanReturn - zScore * portfolioVolatilityWithCorrelation;
     }
 
     /**
