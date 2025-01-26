@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface RiskMetricRepository extends JpaRepository<RiskMetric, Long> {
 
     RiskMetric findByPortfolio(Portfolio portfolio);
+
+    void deleteByPortfolio(Portfolio portfolio);
 }

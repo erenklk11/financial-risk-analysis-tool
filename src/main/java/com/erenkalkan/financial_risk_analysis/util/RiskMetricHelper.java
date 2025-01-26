@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -36,13 +37,11 @@ public class RiskMetricHelper {
 
 
     /**
-     * Calculates the average investment returns for each asset in the given portfolio over the specified number of days.
-     * The investment return is calculated as the average of daily returns over the specified period, excluding the first day.
+     * Calculates the investment returns for a given portfolio based on historical prices.
      *
-     * @param portfolio The portfolio containing the assets for which the returns are calculated.
-     * @return A list of average investment returns for each asset in the portfolio, where each element corresponds to the
-     *         average return for an asset.
-     * @throws RuntimeException If fetching historical prices for an asset fails.
+     * @param portfolio         The portfolio containing the assets.
+     * @param historicalPrices  A map of assets to their respective list of historical prices.
+     * @return A list of investment returns.
      */
     public List<Double> calculateInvestmentReturns(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices) {
         List<Double> investmentReturns = new ArrayList<>();
@@ -53,6 +52,7 @@ public class RiskMetricHelper {
             try {
                 List<Double> dailyPrices = historicalPrices.get(asset);
 
+                // Calculate daily logarithmic returns for the asset
                 List<Double> dailyReturns = new ArrayList<>();
                 for (int i = 1; i < dailyPrices.size(); i++) {
                     double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
@@ -72,15 +72,22 @@ public class RiskMetricHelper {
         return investmentReturns;
     }
 
+    /**
+     * Calculates the daily returns for a given asset based on historical prices.
+     *
+     * @param asset             The asset for which to calculate returns.
+     * @param historicalPrices  A map of assets to their respective list of historical prices.
+     * @return A list of daily returns for the asset.
+     */
     public List<Double> calculateAssetReturns(Asset asset, Map<Asset, List<Double>> historicalPrices) {
 
         List<Double> assetReturns = new ArrayList<>();
 
         try {
-            // Fetch daily prices for the last X days
+            // Fetch daily prices for the last trading year (252 days)
             List<Double> dailyPrices = historicalPrices.get(asset);
 
-            // Calculate daily returns for the last X days (excluding the first day)
+            // Calculate daily logarithmic returns for the asset
             for (int i = 1; i < dailyPrices.size(); i++) {
                 double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
                 assetReturns.add(logReturn);
@@ -95,12 +102,11 @@ public class RiskMetricHelper {
     }
 
     /**
-     * Fetches the risk-free rate based on the given interval and maturity using the Alpha Vantage API.
+     * Fetches the risk-free rate from an external API.
      *
-     * @param interval The interval for the treasury yield data. Accepted values: "daily", "weekly", "monthly".
-     * @param maturity The maturity period for the treasury yield. Accepted values: "3month", "2year", "5year", "10year", "30year".
-     * @return The risk-free rate as a double value.
-     * @throws RuntimeException If the data cannot be retrieved or parsed from the API.
+     * @param interval  The interval for the risk-free rate (e.g., daily, monthly).
+     * @param maturity  The maturity period for the risk-free rate (e.g., 1 month, 1 year).
+     * @return The risk-free rate as a percentage.
      */
     public double getRiskFreeRate(String interval, String maturity) {
 
@@ -136,24 +142,21 @@ public class RiskMetricHelper {
         return 0.0;
     }
 
-
     /**
-     * Calculates the daily market returns for a given market symbol over the specified number of days.
-     * The market return is calculated as the percentage change in price between consecutive days.
+     * Calculates the market returns based on historical prices.
      *
-     * @return A list of daily market returns, where each element represents the return for a particular day
-     *         compared to the previous day.
-     * @throws RuntimeException If fetching historical prices for the market fails.
+     * @param historicalPrices  A list of historical prices for the market.
+     * @return A list of market returns.
      */
     public List<Double> calculateMarketReturns(List<Double> historicalPrices) {
 
         List<Double> marketReturns = new ArrayList<>();
 
         try {
-            // Fetch daily prices for the last X days
+            // Fetch daily prices for the last trading year (252 days)
             List<Double> dailyPrices = historicalPrices;
 
-            // Calculate daily returns for the last X days (excluding the first day)
+            // Calculate daily logarithmic returns for the asset
             for (int i = 1; i < dailyPrices.size(); i++) {
                 double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
                 marketReturns.add(logReturn);
@@ -167,25 +170,32 @@ public class RiskMetricHelper {
         return marketReturns;
     }
 
-
+    /**
+     * Calculates the annualized return of a portfolio based on daily returns.
+     *
+     * @param returns  A list of daily returns for the portfolio.
+     * @return The annualized return of the portfolio.
+     */
     public double calculatePortfolioReturn(List<Double> returns) {
 
-        List<Double> dailyReturns = returns;
+        // Convert log returns to simple returns
+        List<Double> simpleReturns = returns.stream()
+                .map(logReturn -> Math.exp(logReturn) - 1)
+                .collect(Collectors.toList());
 
-        // Calculate the average daily return
-        return dailyReturns.stream()
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0.0);
+        // Calculate cumulative return
+        double cumulativeReturn = simpleReturns.stream()
+                .reduce(1.0, (acc, ret) -> acc * (1 + ret)) - 1;
+
+        // Annualize (assuming 252 trading days)
+        return Math.pow(1 + cumulativeReturn, 252.0 / returns.size()) - 1;
     }
 
     /**
-     * Calculates the total value of a portfolio by summing the value of each asset in the portfolio.
-     * The value of each asset is determined by multiplying its quantity by its current price.
+     * Calculates the total value of a portfolio based on the current prices of its assets.
      *
-     * @param portfolio The portfolio whose total value is to be calculated. It contains a list of assets.
-     * @return The total value of the portfolio, which is the sum of the values of all assets in the portfolio.
-     *         If the portfolio contains no assets, it returns 0.0.
+     * @param portfolio  The portfolio containing the assets.
+     * @return The total value of the portfolio.
      */
     public double calculateTotalPortfolioValue(Portfolio portfolio) {
 
@@ -197,33 +207,33 @@ public class RiskMetricHelper {
         return totalValue;
     }
 
-
-
+    /**
+     * Calculates the annualized return of the market based on daily returns.
+     *
+     * @param returns  A list of daily returns for the market.
+     * @return The annualized return of the market.
+     */
     public double calculateMarketReturn(List<Double> returns) {
 
-        // Fetch daily returns for the market
-        List<Double> dailyReturns = returns;
+        // Convert log returns to simple returns
+        List<Double> simpleReturns = returns.stream()
+                .map(logReturn -> Math.exp(logReturn) - 1)
+                .collect(Collectors.toList());
 
-        // Calculate the average daily return
-        return dailyReturns.stream()
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0.0);
+        // Calculate cumulative return
+        double cumulativeReturn = simpleReturns.stream()
+                .reduce(1.0, (acc, ret) -> acc * (1 + ret)) - 1;
+
+        // Annualize (assuming 252 trading days)
+        return Math.pow(1 + cumulativeReturn, 252.0 / returns.size()) - 1;
     }
 
-
     /**
-     * Calculates the mean return of a portfolio over two time periods (30 days and 60 days) for each asset
-     * and computes the weighted average return based on the asset weights in the portfolio.
+     * Calculates the mean return of a portfolio based on historical prices.
      *
-     * The method fetches historical prices for each asset in the portfolio for the last 60 days, calculates
-     * the 30-day and 60-day returns for each asset, and then computes the weighted mean return of the portfolio
-     * based on the asset quantities and their respective prices.
-     *
-     * @param portfolio The portfolio whose mean return is to be calculated.
-     *                  The portfolio contains a list of assets with their respective quantities and prices.
-     * @return The weighted mean return of the portfolio based on 30-day and 60-day returns for each asset.
-     *         If there is insufficient data for any asset, it will be skipped.
+     * @param portfolio         The portfolio containing the assets.
+     * @param historicalPrices  A map of assets to their respective list of historical prices.
+     * @return The mean return of the portfolio.
      */
     public double calculateMeanReturn(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices) {
         List<Asset> assets = portfolio.getAssets();
@@ -254,26 +264,12 @@ public class RiskMetricHelper {
         return portfolioMeanReturn;
     }
 
-
     /**
-     * Calculates the volatility (standard deviation) of a portfolio based on the historical returns
-     * of its assets. The volatility is computed by first calculating the daily returns for each asset,
-     * then computing the portfolio's total variance by considering asset weights and the covariance
-     * between asset returns. The method then returns the portfolio's overall volatility as the square root
-     * of the variance.
+     * Calculates the portfolio volatility with correlation based on historical returns.
      *
-     * The steps involved include:
-     * 1. Fetching historical returns for each asset in the portfolio.
-     * 2. Calculating the asset weights based on their current value in the portfolio.
-     * 3. Computing the standard deviation (volatility) for each asset.
-     * 4. Calculating the covariance matrix of asset returns.
-     * 5. Computing the portfolio's variance using the covariance matrix and asset weights.
-     * 6. Returning the portfolio's volatility as the square root of the variance.
-     *
-     * @param portfolio The portfolio for which the volatility is to be calculated. It contains a list of assets
-     *                  with their quantities and prices.
-     * @return The volatility (standard deviation) of the portfolio, calculated based on historical returns of its assets.
-     * @throws IllegalArgumentException if the portfolio contains no assets.
+     * @param portfolio     The portfolio containing the assets.
+     * @param assetReturns  A map of assets to their respective list of returns.
+     * @return The portfolio volatility with correlation.
      */
     public double calculatePortfolioVolatilityWithCorrelation(Portfolio portfolio, Map<Asset, List<Double>> assetReturns) {
         List<Asset> assets = portfolio.getAssets();
@@ -356,16 +352,11 @@ public class RiskMetricHelper {
         return Math.sqrt(portfolioVariance)* Math.sqrt(252);
     }
 
-
     /**
-     * Retrieves the z-score corresponding to a given confidence level.
+     * Gets the z-score corresponding to the configured confidence level.
      *
-     * The z-score is a statistical measurement that represents the number of
-     * standard deviations a data point is from the mean. This method maps
-     * common confidence levels (e.g., 90%, 95%, 99%) to their respective z-scores.
-     *
-     * @return the z-score associated with the given confidence level
-     * @throws IllegalArgumentException if the confidence level is unsupported
+     * @return The z-score.
+     * @throws IllegalArgumentException if the confidence level is unsupported.
      */
     public double getZScoreFromConfidenceLevel() {
 
@@ -375,19 +366,13 @@ public class RiskMetricHelper {
         throw new IllegalArgumentException("Unsupported confidence level: " + confidenceLevel);
     }
 
-
     /**
-     * Calculates the portfolio values for each day over a specified period. The method considers the value of each asset
-     * in the portfolio, based on their daily prices, and computes the weighted contribution of each asset to the overall portfolio value.
+     * Calculates the portfolio values over a specified number of days based on historical prices.
      *
-     * The portfolio value for each day is determined by the weighted sum of the asset prices, where the weight of each asset
-     * is calculated based on its proportion to the total portfolio value. This provides a daily snapshot of how the portfolio's
-     * value changes over the given time period.
-     *
-     * @param portfolio The portfolio containing the assets whose values are to be calculated.
-     * @param days The number of days over which to calculate the portfolio values.
-     * @return A list of portfolio values for each day over the specified period.
-     * @throws IllegalArgumentException if the portfolio is empty or contains assets with insufficient data.
+     * @param portfolio         The portfolio containing the assets.
+     * @param historicalPrices  A map of assets to their respective list of historical prices.
+     * @param days              The number of days for which to calculate portfolio values.
+     * @return A list of portfolio values over the specified number of days.
      */
     public List<Double> calculatePortfolioValues(Portfolio portfolio, Map<Asset, List<Double>> historicalPrices, int days) {
         List<Double> portfolioValues = new ArrayList<>();

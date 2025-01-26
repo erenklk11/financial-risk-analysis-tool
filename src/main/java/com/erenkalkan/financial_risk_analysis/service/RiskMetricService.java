@@ -14,7 +14,7 @@ public interface RiskMetricService {
 
     void save(RiskMetric riskMetric);
 
-    void deleteById(Long id);
+    void deleteByPortfolio(Portfolio portfolio);
 
 
     double calculateSharpeRatio(List<Double> investmentReturns, double riskFreeRate, double portfolioVolatility);

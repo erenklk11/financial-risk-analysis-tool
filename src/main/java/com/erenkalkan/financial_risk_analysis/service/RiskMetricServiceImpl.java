@@ -5,6 +5,7 @@ import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
 import com.erenkalkan.financial_risk_analysis.entity.RiskMetric;
 import com.erenkalkan.financial_risk_analysis.repository.RiskMetricRepository;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,23 +26,28 @@ public class RiskMetricServiceImpl implements RiskMetricService {
     }
 
     @Override
+    @Transactional
     public void save(RiskMetric riskMetric) {
         riskMetricRepository.save(riskMetric);
     }
 
     @Override
-    public void deleteById(Long id) {
-        riskMetricRepository.deleteById(id);
+    @Transactional
+    public void deleteByPortfolio(Portfolio portfolio) {
+        riskMetricRepository.deleteByPortfolio(portfolio);
     }
 
 
-
     /**
-     * Calculate Sharpe Ratio.
+     * Calculates the Sharpe ratio for a given list of investment returns.
      *
-     * @param investmentReturns List of investment investmentReturns
-     * @return Sharpe Ratio
+     * @param investmentReturns  A list of daily investment returns.
+     * @param riskFreeRate       The annual risk-free rate as a percentage.
+     * @param portfolioVolatility The annual portfolio volatility.
+     * @return The Sharpe ratio.
+     * @throws IllegalArgumentException if the returns list is null or empty.
      */
+    @Override
     public double calculateSharpeRatio(List<Double> investmentReturns, double riskFreeRate, double portfolioVolatility) {
 
         if (investmentReturns == null || investmentReturns.isEmpty()) {
@@ -59,11 +65,15 @@ public class RiskMetricServiceImpl implements RiskMetricService {
         return (meanReturn - dailyRiskFreeRate) / dailyPortfolioVolatility;
     }
 
+
     /**
-     * Calculate the beta of an investment.
+     * Calculates the portfolio beta based on the asset returns and market returns.
      *
-     * @param marketReturns List of market benchmark returns
-     * @return Beta
+     * @param portfolio          The portfolio containing the assets.
+     * @param assetReturns       A map of assets to their respective list of returns.
+     * @param marketReturns      A list of market returns.
+     * @return The portfolio beta.
+     * @throws IllegalArgumentException if the returns lists are null or of different sizes.
      */
     @Override
     public double calculatePortfolioBeta(Portfolio portfolio, Map<Asset, List<Double>> assetReturns, List<Double> marketReturns) {
@@ -80,6 +90,14 @@ public class RiskMetricServiceImpl implements RiskMetricService {
         return portfolioBeta;
     }
 
+    /**
+     * Calculates the beta of an asset based on its returns and the market returns.
+     *
+     * @param assetReturns  A list of asset returns.
+     * @param marketReturns A list of market returns.
+     * @return The asset beta.
+     * @throws IllegalArgumentException if the returns lists are null or of different sizes.
+     */
     private double calculateBeta(List<Double> assetReturns, List<Double> marketReturns) {
         if (assetReturns == null || marketReturns == null || assetReturns.size() != marketReturns.size()) {
             throw new IllegalArgumentException("Returns lists must be non-null and of the same size");
@@ -112,47 +130,49 @@ public class RiskMetricServiceImpl implements RiskMetricService {
 
 
     /**
-     * Calculate Alpha.
+     * Calculates the alpha of the portfolio.
      *
-     * @param portfolioReturn Portfolio's return
-     * @param marketReturn Market return
-     * @param riskFreeRate Risk-free rate
-     * @param beta Portfolio's beta
-     * @return Alpha
+     * @param portfolioReturn    The daily portfolio return.
+     * @param marketReturn       The daily market return.
+     * @param riskFreeRate       The annual risk-free rate as a percentage.
+     * @param beta               The portfolio beta.
+     * @return The alpha of the portfolio.
      */
     @Override
     public double calculateAlpha(double portfolioReturn, double marketReturn, double riskFreeRate, double beta) {
 
-        double annualizedPortfolioReturn = portfolioReturn * 252;
-        double annualizedMarketReturn = marketReturn * 252;
-
-        return annualizedPortfolioReturn - (riskFreeRate + beta * (annualizedMarketReturn - riskFreeRate));
+        return portfolioReturn - (riskFreeRate + beta * (marketReturn - riskFreeRate));
     }
 
+
     /**
-     * Calculate Value at Risk (VaR).
+     * Calculates the Value at Risk (VaR) of the portfolio.
      *
-     * @param meanReturn       Mean return of the portfolio
-     * @param portfolioVolatilityWithCorrelation Standard deviation of portfolio returns
-     * @param zScore               Z-score for the desired confidence level (e.g., 1.645 for 95%)
-     * @return Value at Risk (VaR)
+     * @param meanReturn                     The mean daily return of the portfolio.
+     * @param portfolioVolatilityWithCorrelation The annualized portfolio volatility with correlation.
+     * @param zScore                         The z-score corresponding to the confidence level.
+     * @return The Value at Risk (VaR).
      */
     @Override
     public double calculateValueAtRisk(double meanReturn, double portfolioVolatilityWithCorrelation, double zScore) {
+
         // Annualize the mean return and volatility
         double annualizedMeanReturn = meanReturn * 252;
 
         return annualizedMeanReturn - zScore * portfolioVolatilityWithCorrelation;
     }
 
+
     /**
-     * Calculate Maximum Drawdown (MDD).
+     * Calculates the maximum drawdown of the portfolio.
      *
-     * @param portfolioValues List of portfolio values over time
-     * @return Maximum Drawdown (MDD)
+     * @param portfolioValues    A list of portfolio values over time.
+     * @return The maximum drawdown as a percentage.
+     * @throws IllegalArgumentException if the portfolio values list is null or empty.
      */
     @Override
     public double calculateMaximumDrawdown(List<Double> portfolioValues) {
+
         if (portfolioValues == null || portfolioValues.isEmpty()) {
             throw new IllegalArgumentException("Portfolio values list cannot be null or empty");
         }

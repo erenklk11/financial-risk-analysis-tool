@@ -4,6 +4,7 @@ import com.erenkalkan.financial_risk_analysis.controller.MainController;
 import com.erenkalkan.financial_risk_analysis.entity.Asset;
 import com.erenkalkan.financial_risk_analysis.entity.Portfolio;
 import com.erenkalkan.financial_risk_analysis.repository.AssetRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONException;
@@ -52,11 +53,13 @@ public class AssetServiceImpl implements  AssetService {
 
 
     @Override
+    @Transactional
     public void save(Asset asset) {
         assetRepository.save(asset);
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         assetRepository.deleteById(id);
     }

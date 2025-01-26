@@ -291,7 +291,9 @@ public class MainController {
 
         RiskMetric riskMetric = riskMetricService.findByPortfolio(portfolio);
         riskMetric = calculateRiskMetrics(portfolio);
-        redirectAttributes.addFlashAttribute("riskMetric", riskMetric);
+
+        riskMetricService.deleteByPortfolio(portfolio);
+        riskMetricService.save(riskMetric);
 
         return "redirect:/home";
 
