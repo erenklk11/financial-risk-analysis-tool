@@ -55,7 +55,7 @@ public class RiskMetricHelper {
                 // Calculate daily logarithmic returns for the asset
                 List<Double> dailyReturns = new ArrayList<>();
                 for (int i = 1; i < dailyPrices.size(); i++) {
-                    double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
+                    double logReturn = Math.log(dailyPrices.get(i-1) / dailyPrices.get(i));
                     dailyReturns.add(logReturn);
                 }
 
@@ -71,6 +71,7 @@ public class RiskMetricHelper {
 
         return investmentReturns;
     }
+
 
     /**
      * Calculates the daily returns for a given asset based on historical prices.
@@ -100,6 +101,7 @@ public class RiskMetricHelper {
 
         return assetReturns;
     }
+
 
     /**
      * Fetches the risk-free rate from an external API.
@@ -142,6 +144,7 @@ public class RiskMetricHelper {
         return 0.0;
     }
 
+
     /**
      * Calculates the market returns based on historical prices.
      *
@@ -158,7 +161,7 @@ public class RiskMetricHelper {
 
             // Calculate daily logarithmic returns for the asset
             for (int i = 1; i < dailyPrices.size(); i++) {
-                double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
+                double logReturn = Math.log(dailyPrices.get(i-1) / dailyPrices.get(i));
                 marketReturns.add(logReturn);
             }
 
@@ -170,6 +173,7 @@ public class RiskMetricHelper {
         return marketReturns;
     }
 
+
     /**
      * Calculates the annualized return of a portfolio based on daily returns.
      *
@@ -178,18 +182,13 @@ public class RiskMetricHelper {
      */
     public double calculatePortfolioReturn(List<Double> returns) {
 
-        // Convert log returns to simple returns
-        List<Double> simpleReturns = returns.stream()
-                .map(logReturn -> Math.exp(logReturn) - 1)
-                .collect(Collectors.toList());
+        // Sum log returns to calculate the log cumulative return
+        double logCumulativeReturn = returns.stream().mapToDouble(Double::doubleValue).sum();
 
-        // Calculate cumulative return
-        double cumulativeReturn = simpleReturns.stream()
-                .reduce(1.0, (acc, ret) -> acc * (1 + ret)) - 1;
-
-        // Annualize (assuming 252 trading days)
-        return Math.pow(1 + cumulativeReturn, 252.0 / returns.size()) - 1;
+        // Annualize the log return (assuming 252 trading days)
+        return Math.exp(logCumulativeReturn * (252.0 / returns.size())) - 1;
     }
+
 
     /**
      * Calculates the total value of a portfolio based on the current prices of its assets.
@@ -207,6 +206,7 @@ public class RiskMetricHelper {
         return totalValue;
     }
 
+
     /**
      * Calculates the annualized return of the market based on daily returns.
      *
@@ -215,18 +215,13 @@ public class RiskMetricHelper {
      */
     public double calculateMarketReturn(List<Double> returns) {
 
-        // Convert log returns to simple returns
-        List<Double> simpleReturns = returns.stream()
-                .map(logReturn -> Math.exp(logReturn) - 1)
-                .collect(Collectors.toList());
+        // Sum log returns to calculate the log cumulative return
+        double logCumulativeReturn = returns.stream().mapToDouble(Double::doubleValue).sum();
 
-        // Calculate cumulative return
-        double cumulativeReturn = simpleReturns.stream()
-                .reduce(1.0, (acc, ret) -> acc * (1 + ret)) - 1;
-
-        // Annualize (assuming 252 trading days)
-        return Math.pow(1 + cumulativeReturn, 252.0 / returns.size()) - 1;
+        // Annualize the log return (assuming 252 trading days)
+        return Math.exp(logCumulativeReturn * (252.0 / returns.size())) - 1;
     }
+
 
     /**
      * Calculates the mean return of a portfolio based on historical prices.
@@ -263,6 +258,7 @@ public class RiskMetricHelper {
 
         return portfolioMeanReturn;
     }
+
 
     /**
      * Calculates the portfolio volatility with correlation based on historical returns.
@@ -352,6 +348,7 @@ public class RiskMetricHelper {
         return Math.sqrt(portfolioVariance)* Math.sqrt(252);
     }
 
+
     /**
      * Gets the z-score corresponding to the configured confidence level.
      *
@@ -365,6 +362,7 @@ public class RiskMetricHelper {
         if (confidenceLevel == 0.99) return 2.33;
         throw new IllegalArgumentException("Unsupported confidence level: " + confidenceLevel);
     }
+
 
     /**
      * Calculates the portfolio values over a specified number of days based on historical prices.
