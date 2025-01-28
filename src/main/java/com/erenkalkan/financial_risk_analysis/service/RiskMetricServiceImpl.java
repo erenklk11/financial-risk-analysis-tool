@@ -195,7 +195,71 @@ public class RiskMetricServiceImpl implements RiskMetricService {
     }
 
 
+    /**
+     * Evaluates the risk metrics of a given RiskMetric object and returns a map of evaluation messages.
+     *
+     * @param riskMetric The RiskMetric object containing the risk metrics to be evaluated.
+     * @return A map where the key is the risk metric name and the value is the evaluation message.
+     */    @Override
+    public Map<String, String> evaluateRiskMetrics(RiskMetric riskMetric) {
+        Map<String, String> evaluation = new HashMap<>();
 
+        // Normalization ranges based on expected market conditions
+        double normVolatility = Math.min(riskMetric.getVolatility() / 0.5, 1.0);
+        double normSharpe = Math.max(0, Math.min((riskMetric.getSharpeRatio() + 1) / 2, 1.0));
+        double normBeta = Math.min(Math.abs(riskMetric.getBeta() - 1), 1.0);
+        double normAlpha = Math.max(0, Math.min(1 - (riskMetric.getAlpha() / -5), 1.0));
+        double normMaxDrawdown = Math.min(riskMetric.getMdd() / 0.5, 1.0);
+        double normVar = Math.min(Math.abs(riskMetric.getVar()) / 0.5, 1.0);
 
+        // Apply weights
+        double riskScore = (0.25 * normVolatility) + (0.20 * (1 - normSharpe)) +
+                (0.20 * normBeta) + (0.15 * normAlpha) +
+                (0.10 * normMaxDrawdown) + (0.10 * normVar);
+
+        int finalScore = (int) Math.ceil((1 - riskScore) * 5);
+        finalScore = Math.max(1, Math.min(finalScore, 5)); // Ensure within 1-5 range
+
+        // Generate explanations for each risk metric
+        evaluation.put("Overall Risk Score", finalScore + " - " + getRiskMessage(finalScore));
+        evaluation.put("Volatility", riskMetric.getVolatility() > 0.3 ?
+                "Your portfolio is highly volatile, meaning significant price fluctuations." :
+                "Your portfolio has low volatility, indicating stable price movements.");
+        evaluation.put("Sharpe Ratio", riskMetric.getSharpeRatio() > 0 ?
+                "Your portfolio efficiently balances return and risk." :
+                "Your portfolio has low risk-adjusted returns. Consider safer assets.");
+        evaluation.put("Beta", riskMetric.getBeta() > 1 ?
+                "Your portfolio is highly correlated with the market, meaning it follows market movements closely." :
+                "Your portfolio is defensive and moves independently from the market.");
+        evaluation.put("Alpha", riskMetric.getAlpha() > 0 ?
+                "Your portfolio is outperforming the market, indicating strong returns." :
+                "Your portfolio is underperforming the market, suggesting suboptimal asset selection.");
+        evaluation.put("Max Drawdown", riskMetric.getMdd() > 0.3 ?
+                "Your portfolio has experienced large losses in the past, which indicates higher downside risk." :
+                "Your portfolio has low historical losses, making it relatively stable.");
+        evaluation.put("Value at Risk (VaR)", riskMetric.getVar() < -0.3 ?
+                "Your portfolio is exposed to significant potential losses under adverse conditions." :
+                "Your portfolio has low expected losses, indicating strong risk control.");
+
+        return evaluation;
+    }
+
+    /**
+     * Returns a risk message based on the risk score.
+     *
+     * @param score The risk score.
+     * @return The risk message.
+     */
+    @Override
+    public String getRiskMessage(int score) {
+        return switch (score) {
+            case 1 -> "Very High Risk: Your portfolio is highly volatile. Consider safer assets.";
+            case 2 -> "High Risk: Be cautious, your portfolio carries above-average risk.";
+            case 3 -> "Moderate Risk: Balanced portfolio, but review allocations.";
+            case 4 -> "Low Risk: Stable portfolio with controlled risk.";
+            case 5 -> "Very Low Risk: Highly stable, consider growth opportunities.";
+            default -> "Unknown Risk Level.";
+        };
+    }
 
 }
