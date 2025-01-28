@@ -12,6 +12,8 @@ public interface AssetService {
 
     Asset findById(Long id);
 
+    Asset findByName(String name, Portfolio portfolio);
+
     List<Asset> findAll(Portfolio portfolio);
 
     void save(Asset asset);

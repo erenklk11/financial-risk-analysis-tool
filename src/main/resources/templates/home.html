@@ -150,13 +150,29 @@
       <!-- Display risk metric if available -->
       <div th:if="${riskMetric != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
         <div th:if="${riskMetric.var != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-          <h2>Risk Metrics</h2>
-          <p><strong>Volatility:</strong> <span th:text="${riskMetric.volatility}">0</span></p>
-          <p><strong>Sharpe Ratio:</strong> <span th:text="${riskMetric.sharpeRatio}">0</span></p>
-          <p><strong>Beta:</strong> <span th:text="${riskMetric.beta}">0</span></p>
-          <p><strong>Alpha:</strong> <span th:text="${riskMetric.alpha}">0</span></p>
-          <p><strong>Maximum Drawdown:</strong> <span th:text="${riskMetric.mdd}">0</span></p>
-          <p><strong>Value at Risk:</strong> <span th:text="${riskMetric.var}">0</span></p>
+          <div>
+            <h3>Overall Risk Score: <span th:text="${riskAnalysisResult['Overall Risk Score']}"></span></h3>
+          </div>
+          <!-- Individual Risk Metrics with Explanations -->
+          <div>
+            <p><strong>Volatility:</strong> <span th:text="${riskMetric.volatility}">0</span></p>
+            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Volatility']}"></em></p>
+
+            <p><strong>Sharpe Ratio:</strong> <span th:text="${riskMetric.sharpeRatio}">0</span></p>
+            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Sharpe Ratio']}"></em></p>
+
+            <p><strong>Beta:</strong> <span th:text="${riskMetric.beta}">0</span></p>
+            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Beta']}"></em></p>
+
+            <p><strong>Alpha:</strong> <span th:text="${riskMetric.alpha}">0</span></p>
+            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Alpha']}"></em></p>
+
+            <p><strong>Maximum Drawdown:</strong> <span th:text="${riskMetric.mdd}">0</span></p>
+            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Max Drawdown']}"></em></p>
+
+            <p><strong>Value at Risk:</strong> <span th:text="${riskMetric.var}">0</span></p>
+            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Value at Risk (VaR)']}"></em></p>
+          </div>
         </div>
       </div>
 

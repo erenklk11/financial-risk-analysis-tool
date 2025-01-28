@@ -90,7 +90,7 @@ public class RiskMetricHelper {
 
             // Calculate daily logarithmic returns for the asset
             for (int i = 1; i < dailyPrices.size(); i++) {
-                double logReturn = Math.log(dailyPrices.get(i) / dailyPrices.get(i - 1));
+                double logReturn = Math.log(dailyPrices.get(i-1) / dailyPrices.get(i));
                 assetReturns.add(logReturn);
             }
 

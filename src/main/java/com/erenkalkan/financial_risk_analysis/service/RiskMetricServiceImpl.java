@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -141,7 +142,9 @@ public class RiskMetricServiceImpl implements RiskMetricService {
     @Override
     public double calculateAlpha(double portfolioReturn, double marketReturn, double riskFreeRate, double beta) {
 
-        return portfolioReturn - (riskFreeRate + beta * (marketReturn - riskFreeRate));
+        double decimalRiskFreeRate = riskFreeRate / 100;
+
+        return portfolioReturn - (decimalRiskFreeRate + beta * (marketReturn - decimalRiskFreeRate));
     }
 
 
@@ -190,5 +193,9 @@ public class RiskMetricServiceImpl implements RiskMetricService {
 
         return maxDrawdown;
     }
+
+
+
+
 
 }

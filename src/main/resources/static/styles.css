@@ -300,3 +300,9 @@ div[style*="color: red"] {
   margin-right: 5px;
   border-radius: 2px;
 }
+
+.risk-explanation {
+    font-size: 0.9em;
+    color: #666;
+    margin-left: 10px;
+}

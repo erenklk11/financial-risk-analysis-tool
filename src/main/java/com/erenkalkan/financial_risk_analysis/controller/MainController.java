@@ -61,6 +61,7 @@ public class MainController {
         Portfolio portfolio = null;
         List<Asset> assets = new ArrayList<>();
         RiskMetric riskMetric = null;
+        Map<String, String> riskAnalysisResult = new HashMap<>();
         List<String> assetNames = new ArrayList<>();
         List<Double> assetValues = new ArrayList<>();
         List<Double> assetReturns = new ArrayList<>();
@@ -77,6 +78,10 @@ public class MainController {
                 }
                 portfolio.setTotalValue(new BigDecimal(riskMetricHelper.calculateTotalPortfolioValue(portfolio)).setScale(3, RoundingMode.HALF_UP).doubleValue());
                 riskMetric = riskMetricService.findByPortfolio(portfolio);
+
+                if(riskMetric != null){
+                    riskAnalysisResult = riskMetricService.evaluateRiskMetrics(riskMetric);
+                }
 
                 assetNames = assets.stream()
                         .map(Asset::getName)
@@ -100,6 +105,7 @@ public class MainController {
         model.addAttribute("portfolio", portfolio);
         model.addAttribute("assets", assets);
         model.addAttribute("riskMetric", riskMetric);
+        model.addAttribute("riskAnalysisResult", riskAnalysisResult);
         model.addAttribute("assetNames", assetNames);
         model.addAttribute("assetValues", assetValues);
         model.addAttribute("assetReturns", assetReturns);
@@ -215,6 +221,11 @@ public class MainController {
             temp.setPurchaseDate(parsedDate);
             temp.setPortfolio(userPortfolio);
 
+            if(assetService.findByName(symbol, userPortfolio) != null){
+                redirectAttributes.addFlashAttribute("errorMessage", "Asset already exists in portfolio. Please update quantity instead.");
+                return "redirect:/home";
+            }
+
             log.debug("Fetching current price for symbol: {}", symbol);
             List<Double> currentPrices = assetService.fetchPrices(temp, 0);
             if (currentPrices == null || currentPrices.isEmpty()) {
@@ -258,6 +269,11 @@ public class MainController {
     public String updateAssetQuantity(@RequestParam("id") Long assetId,
                                       @RequestParam("quantity") Double quantity,
                                       RedirectAttributes redirectAttributes) {
+        if(quantity <= 0){
+            redirectAttributes.addFlashAttribute("errorMessage", "Quantity must be greater than 0.");
+            return "redirect:/home";
+        }
+
         try {
             Asset asset = assetService.findById(assetId); // Find asset by ID
             asset.setQuantity(quantity); // Update quantity

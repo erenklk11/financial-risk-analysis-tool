@@ -39,10 +39,10 @@ public class Asset {
     private LocalDate purchaseDate;
 
     @Column(name="purchase_price", nullable = false)
-    private Double purchasePrice;
+    private Double purchasePrice = 0.0;
 
     @Column(name = "current_price", nullable = false)
-    private Double currentPrice;
+    private Double currentPrice = 0.0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

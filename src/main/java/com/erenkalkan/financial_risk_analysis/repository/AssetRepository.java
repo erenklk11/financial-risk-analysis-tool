@@ -14,4 +14,5 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
 
     List<Asset> findAllByPortfolio(Portfolio portfolio);
 
+    Asset findByNameAndPortfolio(String name, Portfolio portfolio);
 }

@@ -26,4 +26,8 @@ public interface RiskMetricService {
     double calculateValueAtRisk(double meanReturn, double portfolioVolitalityWithCorrelation, double zScore);
 
     double calculateMaximumDrawdown(List<Double> portfolioValues);
+
+
+    Map<String, String> evaluateRiskMetrics(RiskMetric riskMetric);
+    String getRiskMessage(int score);
 }
