@@ -150,29 +150,60 @@
       <!-- Display risk metric if available -->
       <div th:if="${riskMetric != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
         <div th:if="${riskMetric.var != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-          <div>
-            <h3>Overall Risk Score: <span th:text="${riskAnalysisResult['Overall Risk Score']}"></span></h3>
+
+          <div class="risk-container">
+            <!-- Overall Risk Score -->
+            <div class="risk-score">
+              <h3>
+                Overall Risk Score: <span th:text="${riskAnalysisResult['Overall Risk Score']}"></span>
+              </h3>
+              <div class="risk-badge" th:classappend="${riskAnalysisResult['Overall Risk Score'] == 1 ? 'low-risk' :
+                          (riskAnalysisResult['Overall Risk Score'] == 5 ? 'high-risk' : 'moderate-risk')}">
+              </div>
+            </div>
+
+            <!-- Individual Risk Metrics -->
+            <div class="risk-metrics">
+              <div class="risk-item">
+                <strong>📈 Volatility:</strong> <span th:text="${riskMetric.volatility}"></span>
+                <span class="info-icon" data-tooltip="Volatility measures price fluctuations. Higher values indicate more risk.">ℹ️</span>
+                <p class="risk-desc" th:text="${riskAnalysisResult['Volatility']}"></p>
+              </div>
+
+              <div class="risk-item">
+                <strong>📊 Sharpe Ratio:</strong> <span th:text="${riskMetric.sharpeRatio}"></span>
+                <span class="info-icon" data-tooltip="The Sharpe Ratio evaluates risk-adjusted returns. Higher is better.">ℹ️</span>
+                <p class="risk-desc" th:text="${riskAnalysisResult['Sharpe Ratio']}"></p>
+              </div>
+
+              <div class="risk-item">
+                <strong>⚡ Beta:</strong> <span th:text="${riskMetric.beta}"></span>
+                <span class="info-icon" data-tooltip="Beta measures correlation with the market. A lower beta means less market dependence.">ℹ️</span>
+                <p class="risk-desc" th:text="${riskAnalysisResult['Beta']}"></p>
+              </div>
+
+              <div class="risk-item">
+                <strong>🚀 Alpha:</strong> <span th:text="${riskMetric.alpha}"></span>
+                <span class="info-icon" data-tooltip="Alpha represents excess returns relative to the market.">ℹ️</span>
+                <p class="risk-desc" th:text="${riskAnalysisResult['Alpha']}"></p>
+              </div>
+
+              <div class="risk-item">
+                <strong>📉 Maximum Drawdown:</strong> <span th:text="${riskMetric.mdd}"></span>
+                <span class="info-icon" data-tooltip="Maximum drawdown shows the largest loss from a peak to a trough.">ℹ️</span>
+                <p class="risk-desc" th:text="${riskAnalysisResult['Max Drawdown']}"></p>
+              </div>
+
+              <div class="risk-item">
+                <strong>⚠️ Value at Risk:</strong> <span th:text="${riskMetric.var}"></span>
+                <span class="info-icon" data-tooltip="Value at Risk (VaR) estimates potential portfolio losses under adverse conditions.">ℹ️</span>
+                <p class="risk-desc" th:text="${riskAnalysisResult['Value at Risk (VaR)']}"></p>
+              </div>
+            </div>
+
           </div>
-          <!-- Individual Risk Metrics with Explanations -->
-          <div>
-            <p><strong>Volatility:</strong> <span th:text="${riskMetric.volatility}">0</span></p>
-            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Volatility']}"></em></p>
-
-            <p><strong>Sharpe Ratio:</strong> <span th:text="${riskMetric.sharpeRatio}">0</span></p>
-            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Sharpe Ratio']}"></em></p>
-
-            <p><strong>Beta:</strong> <span th:text="${riskMetric.beta}">0</span></p>
-            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Beta']}"></em></p>
-
-            <p><strong>Alpha:</strong> <span th:text="${riskMetric.alpha}">0</span></p>
-            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Alpha']}"></em></p>
-
-            <p><strong>Maximum Drawdown:</strong> <span th:text="${riskMetric.mdd}">0</span></p>
-            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Max Drawdown']}"></em></p>
-
-            <p><strong>Value at Risk:</strong> <span th:text="${riskMetric.var}">0</span></p>
-            <p class="risk-explanation"><em th:text="${riskAnalysisResult['Value at Risk (VaR)']}"></em></p>
           </div>
+
         </div>
       </div>
 

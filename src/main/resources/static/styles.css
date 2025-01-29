@@ -306,3 +306,99 @@ div[style*="color: red"] {
     color: #666;
     margin-left: 10px;
 }
+
+.risk-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: auto;
+}
+
+/* Overall Risk Score */
+.risk-score {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Risk Badge Styling */
+.risk-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 16px;
+    color: #fff;
+}
+
+.low-risk {
+    background-color: #4CAF50; /* Green */
+}
+
+.moderate-risk {
+    background-color: #FFC107; /* Yellow */
+}
+
+.high-risk {
+    background-color: #E53935; /* Red */
+}
+
+/* Risk Metric Items */
+.risk-metrics {
+    border-top: 2px solid #ddd;
+    padding-top: 10px;
+}
+
+.risk-item {
+    margin-bottom: 12px;
+}
+
+.risk-desc {
+    font-size: 14px;
+    color: #555;
+    background: #f9f9f9;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+/* Info icon styling */
+.info-icon {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #007bff;
+    position: relative;
+}
+
+/* Tooltip styling */
+.info-icon::after {
+    content: attr(data-tooltip);
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    text-align: center;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    width: 200px;
+    left: 50%;
+    bottom: 140%;
+    transform: translateX(-50%);
+    transition: opacity 0.3s ease-in-out;
+    white-space: normal;
+    pointer-events: none;
+}
+
+/* Show tooltip on hover */
+.info-icon:hover::after {
+    visibility: visible;
+    opacity: 1;
+}
+
