@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
   <link rel="stylesheet" href="styles.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -147,23 +148,25 @@
       </form>
     </div>
 
-      <!-- Display risk metric if available -->
-      <div th:if="${riskMetric != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-        <div th:if="${riskMetric.var != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+    <!-- Display risk metric if available -->
+    <div th:if="${riskMetric != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+      <div th:if="${riskMetric.var != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
 
-          <div class="risk-container">
-            <!-- Overall Risk Score -->
-            <div class="risk-score">
-              <h3>
-                Overall Risk Score: <span th:text="${riskAnalysisResult['Overall Risk Score']}"></span>
-              </h3>
-              <div class="risk-badge" th:classappend="${riskAnalysisResult['Overall Risk Score'] == 1 ? 'low-risk' :
-                          (riskAnalysisResult['Overall Risk Score'] == 5 ? 'high-risk' : 'moderate-risk')}">
-              </div>
-            </div>
+        <div class="risk-container">
+          <!-- Overall Risk Score -->
+          <div class="risk-score">
+            <h3>
+              Overall Risk Score: <span th:text="${riskAnalysisResult['Overall Risk Score']}"></span>
+            </h3>
+          </div>
+
+          <!-- Gauge container -->
+          <div style="width: 300px; height: 300px;">
+            <canvas id="riskGauge"></canvas>
+          </div>
 
             <!-- Individual Risk Metrics -->
-            <div class="risk-metrics">
+            <div class="risk-metrics" style="flex: 1;">
               <div class="risk-item">
                 <strong>📈 Volatility:</strong> <span th:text="${riskMetric.volatility}"></span>
                 <span class="info-icon" data-tooltip="Volatility measures price fluctuations. Higher values indicate more risk.">ℹ️</span>
@@ -201,15 +204,14 @@
               </div>
             </div>
 
-          </div>
-          </div>
 
         </div>
       </div>
-
-
     </div>
-  </div>
+
+
+</div>
+</div>
 
 <script th:inline="javascript">
   document.addEventListener("DOMContentLoaded", function () {
@@ -252,7 +254,6 @@
     });
   });
 </script>
-
 
 <script th:inline="javascript">
   document.addEventListener("DOMContentLoaded", function () {
@@ -312,7 +313,35 @@
   });
 </script>
 
+<script th:inline="javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+      // Extract the risk score from the riskAnalysisResult
+      const riskScoreText = /*[[${riskAnalysisResult['Overall Risk Score']}]]*/ '0 - Unknown Risk Level';
+      const riskScore = parseInt(riskScoreText.split(' - ')[0]);
 
+      // Initialize the gauge
+      const ctx = document.getElementById('riskGauge').getContext('2d');
+      new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+              datasets: [{
+                  data: [riskScore, 5 - riskScore],
+                  backgroundColor: ['#FF0000', '#E0E0E0'],
+                  borderWidth: 0
+              }]
+          },
+          options: {
+              circumference: Math.PI,
+              rotation: Math.PI,
+              cutout: '70%',
+              plugins: {
+                  tooltip: { enabled: false },
+                  legend: { display: false }
+              }
+          }
+      });
+  });
+</script>
 
 </body>
 </html>

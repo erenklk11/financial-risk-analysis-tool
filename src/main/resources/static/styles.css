@@ -326,26 +326,6 @@ div[style*="color: red"] {
     margin-bottom: 15px;
 }
 
-/* Risk Badge Styling */
-.risk-badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 16px;
-    color: #fff;
-}
-
-.low-risk {
-    background-color: #4CAF50; /* Green */
-}
-
-.moderate-risk {
-    background-color: #FFC107; /* Yellow */
-}
-
-.high-risk {
-    background-color: #E53935; /* Red */
-}
 
 /* Risk Metric Items */
 .risk-metrics {
@@ -400,5 +380,16 @@ div[style*="color: red"] {
 .info-icon:hover::after {
     visibility: visible;
     opacity: 1;
+}
+
+#needle {
+    position: absolute;
+    width: 2px;
+    height: 100px;
+    background: black;
+    top: 50%;
+    left: 50%;
+    transform-origin: bottom center;
+    transform: rotate(180deg);
 }
 
