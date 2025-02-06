@@ -76,62 +76,61 @@
       </div>
 
       <!-- Always show assets table -->
-      <div style="display: flex; gap: 30px;">
-      <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-        <h3>Assets</h3>
-        <table border="1" cellspacing="0" cellpadding="5">
-          <thead>
-          <tr>
-            <th>Asset Name</th>
-            <th>Symbol</th>
-            <th>Quantity</th>
-            <th>Current Price</th>
-            <th>Return (%)</th>
-            <th>Actions</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="asset : ${assets}" th:if="${assets != null and assets.size() > 0}">
-            <td th:text="${asset.name}">Asset Name</td>
-            <td th:text="${asset.symbol}">Symbol</td>
-            <td>
-              <form th:action="@{/home/assets/update}" method="post">
-                <!-- CSRF Token -->
-                <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
-                <!-- Asset ID -->
-                <input type="hidden" name="id" th:value="${asset.id}" />
-                <!-- Quantity -->
-                <div class="quantity-container">
-                <input type="number" name="quantity" th:value="${asset.quantity}" required min="1" step="any" />
-                <button class="save-btn" type="submit">Save</button>
-                </div>
-              </form>
-            </td>
-            <td th:text="${asset.currentPrice}">Current Price</td>
-            <td th:text="${#numbers.formatDecimal((asset.currentPrice - asset.purchasePrice) / asset.purchasePrice * 100, 1, 2)}">Return</td>
-            <td>
-              <!-- Delete Button -->
-              <form th:action="@{/home/assets/delete}" method="post" style="display:inline;">
-                <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
-                <input type="hidden" name="id" th:value="${asset.id}" />
-                <button class="delete-btn" type="submit">Delete</button>
-              </form>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
+      <div style="display: flex; justify-content: space-between; padding: 0 10%; gap: 30px;">
+        <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; flex: 1;">
+          <h3>Assets</h3>
+          <table border="1" cellspacing="0" cellpadding="5">
+            <thead>
+            <tr>
+              <th>Asset Name</th>
+              <th>Symbol</th>
+              <th>Quantity</th>
+              <th>Current Price</th>
+              <th>Return (%)</th>
+              <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="asset : ${assets}" th:if="${assets != null and assets.size() > 0}">
+              <td th:text="${asset.name}">Asset Name</td>
+              <td th:text="${asset.symbol}">Symbol</td>
+              <td>
+                <form th:action="@{/home/assets/update}" method="post">
+                  <!-- CSRF Token -->
+                  <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                  <!-- Asset ID -->
+                  <input type="hidden" name="id" th:value="${asset.id}" />
+                  <!-- Quantity -->
+                  <div class="quantity-container">
+                    <input type="number" name="quantity" th:value="${asset.quantity}" required min="1" step="any" />
+                    <button class="save-btn" type="submit">Save</button>
+                  </div>
+                </form>
+              </td>
+              <td th:text="${asset.currentPrice}">Current Price</td>
+              <td th:text="${#numbers.formatDecimal((asset.currentPrice - asset.purchasePrice) / asset.purchasePrice * 100, 1, 2)}">Return</td>
+              <td>
+                <!-- Delete Button -->
+                <form th:action="@{/home/assets/delete}" method="post" style="display:inline;">
+                  <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                  <input type="hidden" name="id" th:value="${asset.id}" />
+                  <button class="delete-btn" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; width: 50%; max-width: 500px;">
+        <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; flex: 1;">
           <h3>Asset Distribution</h3>
           <canvas id="assetsPieChart"></canvas>
         </div>
 
-        <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; width: 50%; max-width: 500px;">
+        <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; flex: 1;">
           <h3>Top Performers</h3>
           <canvas id="winnersBarChart"></canvas>
         </div>
-
       </div>
 
       <!-- Display message if no assets -->
@@ -142,7 +141,7 @@
 
 
     <br/>
-    <div style="margin-top: 20px; text-align: left;">
+    <div th:if="${assets.size() > 0}" style="margin-top: 20px; text-align: left;">
       <form th:action="@{/home/riskmetrics}" method="get">
         <button type="submit" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Calculate Risk Metrics</button>
       </form>
@@ -150,7 +149,7 @@
 
     <!-- Display risk metric if available -->
     <div th:if="${riskMetric != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-      <div th:if="${riskMetric.var != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+      <div th:if="${riskMetric.var != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; display: flex; align-items: center;">
 
         <div class="risk-container">
           <!-- Overall Risk Score -->
@@ -160,10 +159,6 @@
             </h3>
           </div>
 
-          <!-- Gauge container -->
-          <div style="width: 300px; height: 300px;">
-            <canvas id="riskGauge"></canvas>
-          </div>
 
             <!-- Individual Risk Metrics -->
             <div class="risk-metrics" style="flex: 1;">
@@ -204,8 +199,12 @@
               </div>
             </div>
 
-
         </div>
+
+        <div style="width: 300px; margin-left: 20px;">
+          <canvas id="riskGauge"></canvas>
+        </div>
+
       </div>
     </div>
 
@@ -319,26 +318,107 @@
       const riskScoreText = /*[[${riskAnalysisResult['Overall Risk Score']}]]*/ '0 - Unknown Risk Level';
       const riskScore = parseInt(riskScoreText.split(' - ')[0]);
 
-      // Initialize the gauge
-      const ctx = document.getElementById('riskGauge').getContext('2d');
+      // Define color gradient based on risk score
+      const getColor = (score) => {
+          const colors = {
+              1: '#00FF00', // Green for lowest risk
+              2: '#99FF00', // Light green
+              3: '#FFFF00', // Yellow
+              4: '#FF9900', // Orange
+              5: '#FF0000'  // Red for highest risk
+          };
+          return colors[score] || '#E0E0E0';
+      };
+
+      const canvas = document.getElementById('riskGauge');
+      canvas.style.width = '300px';
+      canvas.style.height = '150px';
+      canvas.width = 300 * window.devicePixelRatio;
+      canvas.height = 150 * window.devicePixelRatio;
+
+      const ctx = canvas.getContext('2d');
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      // Create gauge segments for even distribution
+      const segments = [1, 1, 1, 1, 1]; // Five equal segments
+
       new Chart(ctx, {
           type: 'doughnut',
           data: {
+              labels: ['1', '2', '3', '4', '5'],
               datasets: [{
-                  data: [riskScore, 5 - riskScore],
-                  backgroundColor: ['#FF0000', '#E0E0E0'],
+                  data: segments,
+                  backgroundColor: [
+                      '#00FF00',
+                      '#99FF00',
+                      '#FFFF00',
+                      '#FF9900',
+                      '#FF0000'
+                  ],
                   borderWidth: 0
               }]
           },
           options: {
-              circumference: Math.PI,
-              rotation: Math.PI,
-              cutout: '70%',
+              responsive: true,
+              maintainAspectRatio: true,
+              circumference: 180,
+              rotation: 270,
+              cutout: '75%',
+              layout: {
+                  padding: {
+                      top: 20,
+                      bottom: 20,
+                      left: 20,
+                      right: 20
+                  }
+              },
               plugins: {
                   tooltip: { enabled: false },
                   legend: { display: false }
               }
-          }
+          },
+          plugins: [{
+              id: 'centerText',
+              afterDraw(chart) {
+                  const {ctx, chartArea: {top, bottom, left, right, width, height}} = chart;
+                  const centerX = left + (width / 2);
+                  // Adjust centerY to match the gauge arc
+                  const centerY = top + (height * 0.75);
+
+                  // Calculate needle length to match gauge radius
+                  const radius = Math.min(width, height) * 0.375; // Matches gauge radius
+                  const angle = (Math.PI * ((riskScore - 1) / 4)); // Convert score to angle
+                  const needleX = centerX + radius * Math.cos(angle);
+                  const needleY = centerY - radius * Math.sin(angle);
+
+                  // Draw needle
+                  ctx.save();
+                  ctx.beginPath();
+                  ctx.moveTo(centerX, centerY);
+                  ctx.lineTo(needleX, needleY);
+                  ctx.strokeStyle = '#333333';
+                  ctx.lineWidth = 2;
+                  ctx.stroke();
+
+                  // Draw needle center circle
+                  ctx.beginPath();
+                  ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+                  ctx.fillStyle = '#333333';
+                  ctx.fill();
+
+                  // Adjust text position relative to new center point
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.font = 'bold 24px Arial';
+                  ctx.fillStyle = getColor(riskScore);
+                  ctx.fillText(riskScore.toString(), centerX, centerY + 35);
+                  ctx.font = '14px Arial';
+                  ctx.fillStyle = '#666666';
+                  ctx.fillText('Risk Level', centerX, centerY + 55);
+
+                  ctx.restore();
+              }
+          }]
       });
   });
 </script>
