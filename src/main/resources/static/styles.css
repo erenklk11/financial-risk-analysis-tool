@@ -13,19 +13,7 @@ body {
   padding: 2rem;
 }
 
-/* Main container width limitation */
-div[style*="padding: 20px"] {
-  max-width: 50%;
-  min-width: 600px;
-}
-
 /* Typography */
-h1 {
-  font-size: 2.5rem;
-  color: #1a1a1a;
-  margin-bottom: 1.5rem;
-}
-
 h2 {
   font-size: 1.75rem;
   color: #2c3e50;
@@ -41,13 +29,6 @@ h3 {
 h4 {
   font-size: 1rem;
   margin-bottom: 0.5rem;
-}
-
-/* Portfolio header */
-div[th\:if="${portfolio != null}"] h3 {
-  font-size: 1.25rem;
-  color: #2c3e50;
-  margin: 1rem 0 1.5rem 0;
 }
 
 /* Button styling */
@@ -74,176 +55,171 @@ div[style*="border: 1px solid #ccc"] {
   margin-bottom: 1.5rem;
 }
 
-/* Table container */
-div[style*="margin-top: 20px"] {
-  width: 100%;
-}
-
 /* Table styling */
 table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  font-size: 1rem; /* Updated for better readability */
-  margin-top: 1rem; /* Add spacing above the table */
+  font-size: 1rem;
+  margin-top: 1rem;
 }
 
-/* Table headers */
 th {
   background-color: #f8f9fa;
-  padding: 0.3rem; /* Increase padding for better spacing */
+  padding: 0.3rem;
   text-align: left;
-  font-weight: 600; /* Slightly bolder */
-  font-size: 0.9rem; /* Updated for better readability */
+  font-weight: 600;
+  font-size: 0.9rem;
   color: #2c3e50;
-  border-bottom: 2px solid #ddd; /* Add stronger separation */
+  border-bottom: 2px solid #ddd;
 }
 
-/* Table cells */
 td {
   white-space: nowrap;
-  padding: 0.5rem; /* Increase padding for better spacing */
+  padding: 0.5rem;
   border-bottom: 1px solid #ddd;
   vertical-align: middle;
 }
 
-/* Remove spinner buttons for Webkit browsers (Chrome, Safari, Edge) */
+/* Form controls */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Input and Buttons in Table Cells */
+/* Table cell inputs and buttons */
 td input[type="number"] {
-  width: 55px; /* Adjust width for smaller padding */
-  padding: 0.4rem;  /* Reduced padding */
+  width: 55px;
+  padding: 0.4rem;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 0.85rem;  /* Smaller font size */
-  margin-bottom: 0.25rem; /* Reduced space below input */
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
 }
 
-
-td form button {
-  display: block;
-  width: 60px; /* Align with input width */
-  margin: 0 auto;
-  padding: 0.3rem;
-  text-align: center;
-  background-color: #007bff;
-  color: white;
-  font-size: 0.95rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-td form button:hover {
-  background-color: #0056b3;
-}
-
-/* Save Button */
-td form button.save-btn,
-button.save-btn {
-  display: inline-block;
-  width: 45px;
-  margin: 0;
-  padding: 0.3rem;
-  text-align: center;
-  background-color: #007bff;
-  color: white;
-  font-size: 0.95rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-td form button.save-btn:hover,
-button.save-btn:hover {
-  background-color: #0056b3;
-}
-
-/* Delete Button */
-td form button.delete-btn,
-button.delete-btn {
-  background-color: #dc3545;
-  width: 60px;
-  padding: 0.3;
-}
-
-td form button.delete-btn:hover,
-button.delete-btn:hover {
-  background-color: #a71d2a;
-}
-
-/* Quantity cell layout */
 td .quantity-container {
   display: flex;
   align-items: center;
-  gap: 8px;  /* Space between input and button */
+  gap: 8px;
 }
 
-/* Make table scrollable on smaller screens */
-@media (max-width: 768px) {
-  table {
-    display: block;
-    overflow-x: auto;
-  }
-
-  th, td {
-    white-space: nowrap; /* Prevent breaking content */
-  }
-}
-
-
-/* Return percentage formatting */
-td:nth-child(5) {
-  color: #333;
-}
-
-/* Add New Asset button */
-.add-asset-btn {
+/* Save and Delete buttons */
+.save-btn {
   display: inline-block;
-  margin-bottom: 1rem;
-}
-
-/* Asset form */
-#addAssetForm {
-  margin-top: 1rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Form inputs */
-input[type="text"],
-input[type="date"] {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  width: 45px;
+  padding: 0.3rem;
+  text-align: center;
+  background-color: #007bff;
+  color: white;
   font-size: 0.95rem;
-  margin-bottom: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-/* Success and error messages */
-div[style*="color: green"],
-div[style*="color: red"] {
+.save-btn:hover {
+  background-color: #0056b3;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  width: 60px;
+  padding: 0.3rem;
+}
+
+.delete-btn:hover {
+  background-color: #a71d2a;
+}
+
+/* Message styling */
+div[style*="color: green"] {
+  background-color: #d4edda;
+  color: #155724;
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;
 }
 
-div[style*="color: green"] {
-  background-color: #d4edda;
-  color: #155724;
-}
-
 div[style*="color: red"] {
   background-color: #f8d7da;
   color: #721c24;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+/* Risk metrics styling */
+.risk-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.risk-score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.risk-metrics {
+  border-top: 2px solid #ddd;
+  padding-top: 10px;
+}
+
+.risk-item {
+  margin-bottom: 12px;
+}
+
+.risk-desc {
+  font-size: 14px;
+  color: #555;
+  background: #f9f9f9;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.info-icon {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #007bff;
+  position: relative;
+}
+
+/* Tooltip */
+.info-icon::after {
+  content: attr(data-tooltip);
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  width: 200px;
+  left: 50%;
+  bottom: 140%;
+  transform: translateX(-50%);
+  transition: opacity 0.3s ease-in-out;
+  white-space: normal;
+  pointer-events: none;
+}
+
+.info-icon:hover::after {
+  visibility: visible;
+  opacity: 1;
 }
 
 /* Responsive design */
@@ -252,144 +228,13 @@ div[style*="color: red"] {
     padding: 1rem;
   }
 
-  div[style*="padding: 20px"] {
-    max-width: 100%;
-    min-width: auto;
-  }
-
   table {
     display: block;
     overflow-x: auto;
   }
-}
 
-/* Pie Chart Container */
-.chart-container {
-  border: 1px solid #ccc;
-  padding: 15px;
-  margin-top: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* SVG Styling */
-.chart-container svg {
-  width: 100%;
-  height: 100%;
-}
-
-/* Legend Styling */
-.chart-legend {
-  margin-top: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-right: 15px;
-}
-
-.legend-color {
-  width: 12px;
-  height: 12px;
-  margin-right: 5px;
-  border-radius: 2px;
-}
-
-.risk-explanation {
-    font-size: 0.9em;
-    color: #666;
-    margin-left: 10px;
-}
-
-.risk-container {
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-    margin: auto;
-}
-
-/* Overall Risk Score */
-.risk-score {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-
-/* Risk Metric Items */
-.risk-metrics {
-    border-top: 2px solid #ddd;
-    padding-top: 10px;
-}
-
-.risk-item {
-    margin-bottom: 12px;
-}
-
-.risk-desc {
-    font-size: 14px;
-    color: #555;
-    background: #f9f9f9;
-    padding: 5px 10px;
-    border-radius: 5px;
-}
-
-/* Info icon styling */
-.info-icon {
-    display: inline-block;
-    margin-left: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    color: #007bff;
-    position: relative;
-}
-
-/* Tooltip styling */
-.info-icon::after {
-    content: attr(data-tooltip);
-    visibility: hidden;
-    opacity: 0;
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    text-align: center;
-    padding: 6px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    width: 200px;
-    left: 50%;
-    bottom: 140%;
-    transform: translateX(-50%);
-    transition: opacity 0.3s ease-in-out;
-    white-space: normal;
-    pointer-events: none;
-}
-
-/* Show tooltip on hover */
-.info-icon:hover::after {
-    visibility: visible;
-    opacity: 1;
-}
-
-#needle {
-    position: absolute;
-    width: 2px;
-    height: 100px;
-    background: black;
-    top: 50%;
-    left: 50%;
-    transform-origin: bottom center;
-    transform: rotate(180deg);
+  th, td {
+    white-space: nowrap;
+  }
 }
 

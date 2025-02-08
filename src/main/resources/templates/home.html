@@ -76,8 +76,9 @@
       </div>
 
       <!-- Always show assets table -->
-      <div style="display: flex; justify-content: space-between; padding: 0 10%; gap: 30px;">
-        <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; flex: 1;">
+      <div style="display: flex; justify-content: space-around; ">
+
+        <div style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; flex: 2;">
           <h3>Assets</h3>
           <table border="1" cellspacing="0" cellpadding="5">
             <thead>
@@ -103,7 +104,7 @@
                   <!-- Quantity -->
                   <div class="quantity-container">
                     <input type="number" name="quantity" th:value="${asset.quantity}" required min="1" step="any" />
-                    <button class="save-btn" type="submit">Save</button>
+                    <button class="save-btn" type="submit" style="background-color:green;">Save</button>
                   </div>
                 </form>
               </td>
@@ -148,8 +149,7 @@
     </div>
 
     <!-- Display risk metric if available -->
-    <div th:if="${riskMetric != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-      <div th:if="${riskMetric.var != null}" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px; display: flex; align-items: center;">
+    <div th:if="${riskMetric != null and riskMetric.var != null}" style="border: 1px solid #ccc; margin-top: 20px; display: flex; justify-content: space-around;">
 
         <div class="risk-container">
           <!-- Overall Risk Score -->
@@ -201,11 +201,10 @@
 
         </div>
 
-        <div style="width: 300px; margin-left: 20px;">
+        <div style="display:flex; flex:1;">
           <canvas id="riskGauge"></canvas>
         </div>
 
-      </div>
     </div>
 
 
@@ -321,7 +320,7 @@
       // Define color gradient based on risk score
       const getColor = (score) => {
           const colors = {
-              1: '#00FF00', // Green for lowest risk
+              1: '#00C000', // Green for lowest risk
               2: '#99FF00', // Light green
               3: '#FFFF00', // Yellow
               4: '#FF9900', // Orange
@@ -349,7 +348,7 @@
               datasets: [{
                   data: segments,
                   backgroundColor: [
-                      '#00FF00',
+                      '#00C000',
                       '#99FF00',
                       '#FFFF00',
                       '#FF9900',
@@ -410,7 +409,7 @@
                   ctx.textAlign = 'center';
                   ctx.textBaseline = 'middle';
                   ctx.font = 'bold 24px Arial';
-                  ctx.fillStyle = getColor(riskScore);
+                  ctx.fillStyle = 'black';
                   ctx.fillText(riskScore.toString(), centerX, centerY + 35);
                   ctx.font = '14px Arial';
                   ctx.fillStyle = '#666666';
