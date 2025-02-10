@@ -140,9 +140,12 @@
         </div>
       </div>
 
+    <div th:if="${assets.size == 1}">
+        <p>Only one asset available. Add 1 more assets to calculate risk metrics.</p>
+    </div>
 
     <br/>
-    <div th:if="${assets.size() > 0}" style="margin-top: 20px; text-align: left;">
+    <div th:if="${assets.size() > 1}" style="margin-top: 20px; text-align: left;">
       <form th:action="@{/home/riskmetrics}" method="get">
         <button type="submit" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Calculate Risk Metrics</button>
       </form>
@@ -387,8 +390,8 @@
                   // Calculate needle length to match gauge radius
                   const radius = Math.min(width, height) * 0.375; // Matches gauge radius
                   const angle = (Math.PI * ((riskScore - 1) / 4)); // Convert score to angle
-                  const needleX = centerX + radius * Math.cos(angle);
-                  const needleY = centerY - radius * Math.sin(angle);
+                  const needleX = (centerX + radius * Math.cos(angle)) - 100;
+                  const needleY = (centerY - radius * Math.sin(angle)) - 100;
 
                   // Draw needle
                   ctx.save();

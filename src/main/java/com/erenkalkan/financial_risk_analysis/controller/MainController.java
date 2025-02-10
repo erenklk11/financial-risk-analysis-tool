@@ -78,9 +78,11 @@ public class MainController {
                 }
                 portfolio.setTotalValue(new BigDecimal(riskMetricHelper.calculateTotalPortfolioValue(portfolio)).setScale(3, RoundingMode.HALF_UP).doubleValue());
                 riskMetric = riskMetricService.findByPortfolio(portfolio);
+                portfolioService.save(portfolio);
 
-                if(riskMetric != null){
+                if(riskMetric != null && portfolio.getAssets().size() > 1){
                     riskAnalysisResult = riskMetricService.evaluateRiskMetrics(riskMetric);
+                    riskMetricService.save(riskMetric);
                 }
 
                 assetNames = assets.stream()
@@ -97,6 +99,8 @@ public class MainController {
         } catch (RuntimeException e) {
             // Log error
             System.err.println(e + "\nPortfolio not found for user: " + user);
+
+            return "limitreached";
         }
 
         // Add attributes to model
@@ -110,8 +114,6 @@ public class MainController {
         model.addAttribute("assetValues", assetValues);
         model.addAttribute("assetReturns", assetReturns);
 
-        portfolioService.save(portfolio);
-        riskMetricService.save(riskMetric);
 
         return "home";
     }

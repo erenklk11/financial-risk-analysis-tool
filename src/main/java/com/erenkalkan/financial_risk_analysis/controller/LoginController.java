@@ -38,19 +38,6 @@ public class LoginController {
         return "sign-in";
     }
 
-    @RequestMapping("/welcome")
-    public String welcome(Model model) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        User user = userService.findByUsername(username);
-
-        model.addAttribute("username", username);
-
-        return "welcome";
-    }
-
     @GetMapping("/sign-up")
     public String signUp(Model model) {
 
@@ -82,7 +69,7 @@ public class LoginController {
 
             authWithAuthManager(request, user.getUsername(), rawPassword);
 
-            return "redirect:/welcome";
+            return "redirect:/home";
 
         } catch (Exception e) {
             model.addAttribute("error", "An error occurred during sign-up. Please try again.");

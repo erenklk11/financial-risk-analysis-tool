@@ -62,7 +62,7 @@ public class SecurityConfigs {
 
         http.authorizeHttpRequests(configurer ->
                 configurer
-                        .requestMatchers("/welcome").hasRole("USER")
+                        .requestMatchers("/home").hasRole("USER")
                         .requestMatchers("/", "/sign-up", "/processSignUp").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -70,7 +70,7 @@ public class SecurityConfigs {
                         form
                                 .loginPage("/")
                                 .loginProcessingUrl("/processSignIn")
-                                .defaultSuccessUrl("/welcome", true)
+                                .defaultSuccessUrl("/home", true)
                                 .permitAll()
                         );
 
