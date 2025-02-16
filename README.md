@@ -64,13 +64,13 @@
 
     <h2>🖼️ The Application</h2>
     <p>Login Page</p>
-    <img src="path-to-your-image/screenshot1.png" class="screenshot">
+    <img src="screenshots/login-page.png" class="screenshot" width:"600">
     <p>Dashboard</p>
-    <img src="path-to-your-image/screenshot2.png" class="screenshot">
+    <img src="screenshots/dashboard.png" class="screenshot" width:"600">
     <p>Adding Asset Form</p>
-    <img src="path-to-your-image/screenshot1.png" class="screenshot">
+    <img src="screenshots/adding_asset.png" class="screenshot" width:"600">
     <p>Risk Analysis</p>
-    <img src="path-to-your-image/screenshot2.png" class="screenshot">
+    <img src="risk_analysis.png" class="screenshot" width:"600">
 
     <h2>📈 Risk Metrics Explained</h2>
     <ul class="metrics">
