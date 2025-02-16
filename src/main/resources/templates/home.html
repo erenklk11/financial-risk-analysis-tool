@@ -390,8 +390,8 @@
                   // Calculate needle length to match gauge radius
                   const radius = Math.min(width, height) * 0.375; // Matches gauge radius
                   const angle = (Math.PI * ((riskScore - 1) / 4)); // Convert score to angle
-                  const needleX = (centerX + radius * Math.cos(angle)) - 100;
-                  const needleY = (centerY - radius * Math.sin(angle)) - 100;
+                  const needleX = (centerX + radius * Math.cos(angle));
+                  const needleY = (centerY - radius * Math.sin(angle));
 
                   // Draw needle
                   ctx.save();
