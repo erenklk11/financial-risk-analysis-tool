@@ -22,10 +22,10 @@ This tool calculates key risk metrics and provides users with a **final risk sco
 ![Login Page](screenshots/login_page.png)  
 
 ### Dashboard  
-![Dashboard](screenshots/dashboard.png)  
+![Dashboard](screenshots/adding_asset.png)  
 
 ### Adding Asset  
-![Adding Asset](screenshots/adding_asset.png)  
+![Adding Asset](screenshots/dashboard.png)  
 
 ### Risk Analysis  
 ![Risk Analysis](screenshots/risk_analysis.png)  
